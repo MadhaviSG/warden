@@ -34,6 +34,35 @@ def _ts():
     return datetime.now(timezone.utc).isoformat()
 
 
+def _load_incidents(run_dir: Path, n: int = 5) -> list:
+    p = run_dir / "incidents.jsonl"
+    if not p.exists():
+        return []
+    lines = [l for l in p.read_text().strip().split("\n") if l]
+    out = []
+    for line in lines[-n:]:
+        try:
+            out.append(json.loads(line))
+        except json.JSONDecodeError:
+            pass
+    return out
+
+
+def _append_incident(run_dir: Path, task: str, trigger: str, reason: str):
+    entry = {"ts": _ts(), "task": task, "trigger": trigger, "reason": reason[:200]}
+    with open(run_dir / "incidents.jsonl", "a") as f:
+        f.write(json.dumps(entry) + "\n")
+
+
+def _format_incident_brief(incidents: list) -> str:
+    if not incidents:
+        return ""
+    lines = ["Prior incidents from this run (avoid repeating false positives):"]
+    for inc in incidents:
+        lines.append(f"- [{inc.get('trigger', '?')}] {inc.get('reason', '')[:120]}")
+    return "\n".join(lines) + "\n\n"
+
+
 def _trace(run_dir: Path, n=10) -> str:
     p = run_dir / "trace.jsonl"
     if not p.exists():
@@ -151,12 +180,15 @@ class _BaseMonitor:
     def gate_finish(self, work: Path, spec: str = ""):
         return None
 
-    def _judge(self, spec, steps, diff, generic=False):
+    def _judge(self, spec, steps, diff, generic=False, run_dir=None, task=""):
         tmpl = GENERIC_JUDGE if generic else JUDGE
-        prompt = tmpl.format(spec=spec, steps=steps, diff=json.dumps(diff, indent=2))
+        brief = ""
+        if run_dir:
+            brief = _format_incident_brief(_load_incidents(run_dir))
+        prompt = brief + tmpl.format(spec=spec, steps=steps, diff=json.dumps(diff, indent=2))
         return parse_json(call_llm([{"role": "user", "content": prompt}], model=_require_env("JUDGE_MODEL")))
 
-    def _maybe_intervene(self, step, result, spec, events, run_dir, diff=None, generic=False):
+    def _maybe_intervene(self, step, result, spec, events, run_dir, diff=None, generic=False, task=""):
         self.checks += 1
         ev = {"step": step, "score": result.get("score", 0), "reason": result.get("reason", ""), "ts": _ts()}
         events.append(ev)
@@ -167,6 +199,7 @@ class _BaseMonitor:
                 self._first_alert_step = step
             self.interventions += 1
             self.cooldown = 1
+            _append_incident(run_dir, task, "intervention", result.get("reason", ""))
             fix = ""
             if diff and diff.get("wrong_date_format_files"):
                 fix = f" Fix these files to YYYY-MM-DD: {diff['wrong_date_format_files']}."
@@ -191,7 +224,7 @@ class WardenMonitor(_BaseMonitor):
         self.ewma = score if self.ewma is None else 0.5 * self.ewma + 0.5 * score
         return self.ewma
 
-    def _maybe_intervene(self, step, result, spec, events, run_dir, diff=None, generic=False):
+    def _maybe_intervene(self, step, result, spec, events, run_dir, diff=None, generic=False, task=""):
         self.checks += 1
         score = result.get("score", 0)
         ewma = self._update_ewma(score)
@@ -208,6 +241,7 @@ class WardenMonitor(_BaseMonitor):
                 self._first_alert_step = step
             self.interventions += 1
             self.cooldown = 1
+            _append_incident(run_dir, task, trigger, result.get("reason", ""))
             fix = ""
             if diff and diff.get("wrong_date_format_files"):
                 fix = f" Fix these files to YYYY-MM-DD: {diff['wrong_date_format_files']}."
@@ -222,7 +256,7 @@ class WardenMonitor(_BaseMonitor):
                     f"re-read the goal, then continue working. {finish_hint}")
         return None
 
-    def gate_finish(self, work: Path, spec: str = ""):
+    def gate_finish(self, work: Path, spec: str = "", run_dir: Path | None = None, task: str = ""):
         if (work / "ledger.json").exists():
             inbox = {p.stem for p in (work / "inbox").glob("*.json")}
             proc = {p.stem for p in (work / "processed").glob("*.json")}
@@ -231,10 +265,13 @@ class WardenMonitor(_BaseMonitor):
             if not missing or self.gate_rejects >= 3:
                 return None
             self.gate_rejects += 1
-            return (f"FINISH REJECTED: {len(missing)} inbox record(s) unaccounted: {missing}. "
-                    f"Repair D1/D2 defects to processed/ (YYYY-MM-DD dates, computed amounts). "
-                    f"Invalid currency (e.g. US$) goes to rejected/ with a reason field. "
-                    f"Update ledger.json after each record, then call finish.")
+            msg = (f"FINISH REJECTED: {len(missing)} inbox record(s) unaccounted: {missing}. "
+                   f"Repair D1/D2 defects to processed/ (YYYY-MM-DD dates, computed amounts). "
+                   f"Invalid currency (e.g. US$) goes to rejected/ with a reason field. "
+                   f"Update ledger.json after each record, then call finish.")
+            if run_dir:
+                _append_incident(run_dir, task, "gate_reject", msg)
+            return msg
         if self.gate_rejects >= 2:
             return None
         result = _judge_goal(spec or (work / "SPEC.md").read_text(), _file_tree(work))
@@ -242,10 +279,13 @@ class WardenMonitor(_BaseMonitor):
             return None
         self.gate_rejects += 1
         missing = result.get("missing", [])
-        return (f"FINISH REJECTED: goal not yet satisfied. {result.get('reason', '')}"
-                + (f" Missing: {missing}" if missing else ""))
+        msg = (f"FINISH REJECTED: goal not yet satisfied. {result.get('reason', '')}"
+               + (f" Missing: {missing}" if missing else ""))
+        if run_dir:
+            _append_incident(run_dir, task, "gate_reject", msg)
+        return msg
 
-    def check(self, step, run_dir, work, spec, events):
+    def check(self, step, run_dir, work, spec, events, task="T1"):
         if self.cooldown:
             self.cooldown = 0
             return None
@@ -267,8 +307,8 @@ class WardenMonitor(_BaseMonitor):
                             break
                     except json.JSONDecodeError:
                         pass
-        return self._maybe_intervene(step, self._judge(spec, _trace(run_dir), diff, generic),
-                                     spec, events, run_dir, diff, generic)
+        return self._maybe_intervene(step, self._judge(spec, _trace(run_dir), diff, generic, run_dir, task),
+                                     spec, events, run_dir, diff, generic, task)
 
 
 class NaiveMonitor(_BaseMonitor):

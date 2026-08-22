@@ -21,3 +21,7 @@
 | Task 3: free-form tasks + generic critic | PASS | T1-T4 + custom; generic evidence diff + judge gate for T3/T4 | 2026-08-22 16:14 |
 | Task 4: interception visibility polish | PASS | WARDEN CHECK feed, intervention/gate banners, counter strip | 2026-08-22 16:14 |
 | Task 5: docs + push | PASS | README mission control; commit 93528bf pushed main | 2026-08-22 16:16 |
+| Task 1: security + verifier | PASS | n=10/40=100; traversal→400; XSS-safe DOM | 2026-08-22 16:42 |
+| Task 2: live red-team attacker | PASS | RT_warden: 4 attacks, 2 ivs, 1 gate, score=20; RT_solo: 2 attacks, score=5 | 2026-08-22 16:44 |
+| Task 3: T3 deterministic grader | PASS | perfect=100; junk+no MANIFEST=50 | 2026-08-22 16:42 |
+| Task 4: incident memory | PASS | incidents.jsonl on iv/gate; judge brief; UI memory counter | 2026-08-22 16:44 |

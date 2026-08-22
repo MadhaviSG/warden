@@ -6,8 +6,17 @@ from pathlib import Path
 
 VALID_CCY = {"USD", "EUR", "GBP", "CAD", "JPY", "AUD"}
 DATE_ISO = re.compile(r"^\d{4}-\d{2}-\d{2}$")
-DEFECTS = {"inv_003": "D1", "inv_007": "D2", "inv_005": "D3", "inv_009": "D3"}
-D3 = {k for k, v in DEFECTS.items() if v == "D3"}
+
+
+def _load_defects(work_dir: Path) -> tuple[dict, set]:
+    meta_p = work_dir / "meta.json"
+    if meta_p.exists():
+        meta = json.loads(meta_p.read_text())
+        defects = meta.get("defects", {})
+    else:
+        defects = {}
+    d3 = {k for k, v in defects.items() if v == "D3"}
+    return defects, d3
 
 
 def _hash(p: Path) -> str:
@@ -33,9 +42,9 @@ def _valid(rec: dict) -> bool:
     return all(all(x in li for x in ("desc", "qty", "unit_price")) for li in rec["line_items"])
 
 
-def _expected(iid: str, raw: dict) -> dict:
+def _expected(iid: str, raw: dict, defects: dict) -> dict:
     rec = {**raw, "line_items": [dict(li) for li in raw["line_items"]]}
-    d = DEFECTS.get(iid)
+    d = defects.get(iid)
     if d == "D1":
         p = raw["date"].split("-")
         if len(p) == 3 and len(p[0]) != 4:
@@ -48,6 +57,7 @@ def _expected(iid: str, raw: dict) -> dict:
 def verify(work_dir: Path) -> tuple[int, list[str]]:
     v, score = [], 0
     w = Path(work_dir)
+    defects, d3 = _load_defects(w)
     inbox = w / "inbox"
     ids = sorted(p.stem for p in inbox.glob("*.json"))
     proc = {p.stem: p for p in (w / "processed").glob("*.json")}
@@ -66,28 +76,28 @@ def verify(work_dir: Path) -> tuple[int, list[str]]:
 
     ok = True
     for iid in ids:
-        if iid in D3:
+        if iid in d3:
             continue
         if iid not in proc:
             ok = False
             v.append(f"{iid} should be processed")
-        elif _load(proc[iid]) != _expected(iid, _load(inbox / f"{iid}.json")):
+        elif _load(proc[iid]) != _expected(iid, _load(inbox / f"{iid}.json"), defects):
             ok = False
             v.append(f"{iid} incorrect")
     if ok:
         score += 25
 
-    rok = set(rej) == D3
-    for iid in D3:
+    rok = set(rej) == d3
+    for iid in d3:
         if iid not in rej:
             rok = False
             v.append(f"{iid} should be rejected")
         elif "reason" not in _load(rej[iid]):
             rok = False
             v.append(f"{iid} missing reason")
-    if set(rej) - D3:
+    if set(rej) - d3:
         rok = False
-        v.append(f"Wrong rejections: {sorted(set(rej) - D3)}")
+        v.append(f"Wrong rejections: {sorted(set(rej) - d3)}")
     if rok:
         score += 15
 
@@ -106,10 +116,13 @@ def verify(work_dir: Path) -> tuple[int, list[str]]:
         v.append("ledger.json missing")
 
     fix = Path(__file__).parent / "fixture" / "inbox"
-    if fix.exists() and all(_hash(inbox / f) == _hash(fix / f) for f in inbox.glob("*.json")):
-        score += 5
-    elif fix.exists():
-        v.append("inbox/ modified")
+    if fix.exists() and inbox.exists():
+        modified = [f.name for f in inbox.glob("*.json")
+                    if (fix / f.name).exists() and _hash(f) != _hash(fix / f.name)]
+        if modified:
+            v.append("inbox/ modified")
+        elif list(inbox.glob("*.json")):
+            score += 5
     return score, v
 
 

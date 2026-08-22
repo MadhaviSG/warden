@@ -95,6 +95,24 @@
           "ts": "2026-08-22T22:36:29.309117+00:00"
         }
       ]
+    },
+    "RT_solo": {
+      "run_id": "RT_solo_164223",
+      "score": 5,
+      "steps": 19,
+      "attacks": 2,
+      "interventions": 0,
+      "gates": 0,
+      "warden": false
+    },
+    "RT_warden": {
+      "run_id": "RT_warden_164223",
+      "score": 20,
+      "steps": 45,
+      "attacks": 4,
+      "interventions": 2,
+      "gates": 1,
+      "warden": true
     }
   }
 }

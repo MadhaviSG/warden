@@ -1,5 +1,6 @@
 """Actor-critic mission control: dual live runs, fault injection, task launcher."""
 import json
+import re
 import threading
 from datetime import datetime
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
@@ -10,15 +11,27 @@ from agent import run_agent
 from faults import make_fault
 from fixture_gen import ensure_snapshot
 from monitors import WardenMonitor
+from redteam import list_attacks, run_attacker
 from tasks import PREFILLED_FAULTS, TASKS
 
 ROOT = Path(__file__).parent
+RUNS_DIR = ROOT / "runs"
 STATIC = ROOT / "static"
+RUN_ID_RE = re.compile(r"^[A-Za-z0-9_]{1,64}$")
 _lock = threading.Lock()
 _live = {
     "left": {"running": False, "run_id": None, "done": False, "warden": False, "task": "T1"},
     "right": {"running": False, "run_id": None, "done": False, "warden": False, "task": "T1"},
 }
+
+
+def _resolve_run_dir(run_id: str) -> Path | None:
+    if not run_id or not RUN_ID_RE.match(run_id):
+        return None
+    rd = (RUNS_DIR / run_id).resolve()
+    if not str(rd).startswith(str(RUNS_DIR.resolve())):
+        return None
+    return rd
 
 
 def _run_bg(run_id: str, column: str, warden: bool, fault, task: str, custom_goal: str | None):
@@ -56,16 +69,29 @@ def launch_race(task: str = "T1", fault_name: str = "F1", custom_goal: str | Non
 
 
 def inject_fault(run_id: str, message: str) -> dict:
+    rd = _resolve_run_dir(run_id)
+    if not rd:
+        return {"error": "invalid run_id", "status": 400}
     with _lock:
         running = any(_live[c]["running"] and _live[c]["run_id"] == run_id for c in ("left", "right"))
     if not running:
         return {"error": "run not running", "status": 409}
-    rd = ROOT / "runs" / run_id
     if not rd.exists():
         return {"error": "run not found", "status": 404}
     with open(rd / "inject.jsonl", "a") as f:
         f.write(json.dumps({"msg": message}) + "\n")
     return {"ok": True, "run_id": run_id}
+
+
+def start_redteam(run_id: str) -> dict:
+    rd = _resolve_run_dir(run_id)
+    if not rd:
+        return {"error": "invalid run_id", "status": 400}
+    with _lock:
+        running = any(_live[c]["running"] and _live[c]["run_id"] == run_id for c in ("left", "right"))
+    if not running:
+        return {"error": "run not running", "status": 409}
+    return run_attacker(run_id)
 
 
 def status() -> dict:
@@ -75,10 +101,9 @@ def status() -> dict:
 
 def list_runs() -> list:
     out = []
-    runs = ROOT / "runs"
-    if not runs.exists():
+    if not RUNS_DIR.exists():
         return out
-    for d in sorted(runs.iterdir()):
+    for d in sorted(RUNS_DIR.iterdir()):
         if d.name.startswith("_"):
             continue
         meta = d / "meta.json"
@@ -113,6 +138,9 @@ class Handler(BaseHTTPRequestHandler):
         n = int(self.headers.get("Content-Length", 0))
         return json.loads(self.rfile.read(n)) if n else {}
 
+    def _require_local(self) -> bool:
+        return self.headers.get("X-Warden-Local") == "1"
+
     def _serve_static(self, path: str):
         rel = path.lstrip("/") or "index.html"
         fp = (STATIC / rel).resolve()
@@ -136,13 +164,17 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(200, {"tasks": TASKS, "faults": {k: v[:80] + "…" for k, v in PREFILLED_FAULTS.items()}})
         if path == "/api/meta":
             rid = qs.get("run_id", [None])[0]
-            p = ROOT / "runs" / rid / "meta.json" if rid else None
+            rd = _resolve_run_dir(rid) if rid else None
+            p = rd / "meta.json" if rd else None
             if not p or not p.exists():
-                return self._json(404, {"error": "not found"})
+                return self._json(400 if rid and not rd else 404, {"error": "not found"})
             return self._json(200, json.loads(p.read_text()))
         if path == "/api/trace":
             rid = qs.get("run_id", [None])[0]
-            p = ROOT / "runs" / rid / "trace.jsonl" if rid else None
+            rd = _resolve_run_dir(rid) if rid else None
+            if rid and not rd:
+                return self._json(400, {"error": "invalid run_id"})
+            p = rd / "trace.jsonl" if rd else None
             body = p.read_text() if p and p.exists() else ""
             self.send_response(200)
             self.send_header("Content-Type", "text/plain")
@@ -150,9 +182,32 @@ class Handler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(body.encode())
             return
+        if path == "/api/attacks":
+            rid = qs.get("run_id", [None])[0]
+            rd = _resolve_run_dir(rid) if rid else None
+            if not rid or not rd:
+                return self._json(400, {"error": "invalid run_id"})
+            return self._json(200, {"attacks": list_attacks(rid)})
+        if path == "/api/incidents":
+            rid = qs.get("run_id", [None])[0]
+            rd = _resolve_run_dir(rid) if rid else None
+            if not rid or not rd:
+                return self._json(400, {"error": "invalid run_id"})
+            inc_p = rd / "incidents.jsonl"
+            incidents = []
+            if inc_p.exists():
+                for line in inc_p.read_text().strip().split("\n"):
+                    if line:
+                        try:
+                            incidents.append(json.loads(line))
+                        except json.JSONDecodeError:
+                            pass
+            return self._json(200, {"incidents": incidents, "count": len(incidents)})
         return self._serve_static(path)
 
     def do_POST(self):
+        if not self._require_local():
+            return self._json(403, {"error": "X-Warden-Local header required"})
         path = urlparse(self.path).path
         body = self._read_json()
         if path == "/api/launch":
@@ -169,7 +224,12 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(200, r)
         if path == "/api/inject":
             r = inject_fault(body.get("run_id", ""), body.get("message", ""))
-            if r.get("status") in (409, 404):
+            if r.get("status") in (400, 409, 404):
+                return self._json(r["status"], r)
+            return self._json(200, r)
+        if path == "/api/redteam":
+            r = start_redteam(body.get("run_id", ""))
+            if r.get("status") in (400, 409, 404):
                 return self._json(r["status"], r)
             return self._json(200, r)
         return self.send_error(404)
@@ -178,8 +238,8 @@ class Handler(BaseHTTPRequestHandler):
 def main():
     ensure_snapshot()
     port = 8765
-    print(f"WARDEN dashboard http://localhost:{port}")
-    ThreadingHTTPServer(("localhost", port), Handler).serve_forever()
+    print(f"WARDEN dashboard http://127.0.0.1:{port}")
+    ThreadingHTTPServer(("127.0.0.1", port), Handler).serve_forever()
 
 
 if __name__ == "__main__":

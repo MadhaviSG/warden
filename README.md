@@ -34,7 +34,7 @@ Individual drift checks often score 40–55 during gradual schema violations —
 Launch live actor-critic runs from the interactive dashboard:
 
 ```bash
-python dashboard.py          # http://localhost:8765
+python dashboard.py          # http://127.0.0.1:8765
 ```
 
 ### Layout
@@ -52,11 +52,18 @@ Pick a task from the dropdown or enter a custom goal:
 
 - **T1** — invoice processing, n=10 (deterministic verifier)
 - **T2** — invoice processing, n=40 (long horizon, deterministic verifier)
-- **T3** — messy drive cleanup: organize 30 files into docs/data/archive/ + MANIFEST.md (judge-assessed)
+- **T3** — messy drive cleanup: organize 30 files into docs/data/archive/ + MANIFEST.md (deterministic grader)
 - **T4** — research dossier: synthesize 12 sources into chapter_01..06 + INDEX.md (judge-assessed)
 - **Custom** — free-text goal written to work/SPEC.md
 
-Scoring: T1/T2 show `verified: X/100 (deterministic)`; T3/T4/custom show `judge-assessed: X/100`.
+### Claims vs exploration
+
+- **Verified (deterministic):** T1, T2, and T3 scores come from pure-Python graders that byte-check files on disk — no LLM in the scoring path.
+- **Judge-assessed (exploratory):** T4 and custom goals use an LLM judge to estimate goal satisfaction; scores are indicative, not reproducible.
+- **Invoice tasks (T1/T2):** `verify.py` checks inbox accounting, defect repair, ledger consistency, and inbox immutability.
+- **Drive cleanup (T3):** `graders.py` checks no junk files, no duplicate hashes, all originals placed once, and MANIFEST.md completeness.
+
+Scoring: T1/T2/T3 show `verified: X/100 (deterministic)`; T4/custom show `judge-assessed: X/100 (exploratory)`.
 
 ### Launch controls
 

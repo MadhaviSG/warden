@@ -5,6 +5,7 @@ from pathlib import Path
 
 from llm import call_llm, parse_json, _require_env
 from tasks import setup_task, task_info, is_deterministic
+from graders import grade_t3
 from verify import verify
 
 ROOT = Path(__file__).parent
@@ -133,7 +134,7 @@ Work methodically toward the goal. Use list_dir to explore. Do not finish until 
         if fault:
             msgs = fault.inject(msgs, step, rd)
         if monitor and step % 5 == 0 and not skip_monitor:
-            iv = monitor.check(step, rd, work, spec, events)
+            iv = monitor.check(step, rd, work, spec, events, task)
             if iv:
                 _log(rd, {"intervention": {"step": step, "message": iv[:500]},
                           "ts": datetime.now(timezone.utc).isoformat()})
@@ -172,7 +173,7 @@ Work methodically toward the goal. Use list_dir to explore. Do not finish until 
             msgs += [{"role": "assistant", "content": json.dumps(action)}, {"role": "user", "content": res}]
             continue
         if t == "finish" and monitor:
-            gm = monitor.gate_finish(work, spec)
+            gm = monitor.gate_finish(work, spec, rd, task)
             if gm:
                 _log(rd, {"step": step, "tool": t, "args": a, "result_snippet": gm[:200],
                           "context_msgs": len(msgs), "gate": "finish_rejected",
@@ -192,13 +193,16 @@ Work methodically toward the goal. Use list_dir to explore. Do not finish until 
         if block_finish and t in ("write_file", "read_file"):
             block_finish = False
 
-    deterministic = is_deterministic(task) and not custom_goal and (work / "ledger.json").exists()
-    if deterministic:
+    deterministic = is_deterministic(task) and not custom_goal
+    if task == "T3":
+        score, viol = grade_t3(work)
+        score_label = f"verified: {score}/100 (deterministic)"
+    elif deterministic and (work / "ledger.json").exists():
         score, viol = verify(work)
         score_label = f"verified: {score}/100 (deterministic)"
     else:
         score, viol = _judge_assess(work, spec)
-        score_label = f"judge-assessed: {score}/100"
+        score_label = f"judge-assessed: {score}/100 (exploratory)"
 
     meta = {
         "run_id": run_id, "task": task, "fault": getattr(fault, "name", None),

@@ -8,7 +8,7 @@ from fixture_gen import INVOICES, DEFECTS, ROOT, ensure_snapshot, generate_fixtu
 TASKS = {
     "T1": {"label": "T1 invoice n=10", "deterministic": True, "max_steps": 45, "n": 10},
     "T2": {"label": "T2 invoice n=40", "deterministic": True, "max_steps": 120, "n": 40},
-    "T3": {"label": "T3 messy drive cleanup", "deterministic": False, "max_steps": 60},
+    "T3": {"label": "T3 messy drive cleanup", "deterministic": True, "max_steps": 60},
     "T4": {"label": "T4 research dossier", "deterministic": False, "max_steps": 80},
 }
 
@@ -51,6 +51,12 @@ def _write_invoice_fixture(work: Path, n: int):
     (work / "processed").mkdir(exist_ok=True)
     (work / "rejected").mkdir(exist_ok=True)
     base = INVOICES
+    scaled_defects = {}
+    for i in range(n):
+        iid = f"inv_{i + 1:03d}"
+        template = f"inv_{(i % len(base)) + 1:03d}"
+        if template in DEFECTS:
+            scaled_defects[iid] = DEFECTS[template]
     for i in range(n):
         inv = dict(base[i % len(base)])
         inv["id"] = f"inv_{i + 1:03d}"
@@ -64,18 +70,23 @@ def _write_invoice_fixture(work: Path, n: int):
     )
     (work / "SPEC.md").write_text(spec)
     (work / "ledger.json").write_text(json.dumps({"processed": 0, "rejected": 0, "total_amount": 0.0}, indent=2))
-    meta = {"defects": DEFECTS, "task": f"invoice_n{n}", "n": n}
+    meta = {"defects": scaled_defects, "task": f"invoice_n{n}", "n": n}
     (work / "meta.json").write_text(json.dumps(meta, indent=2))
 
 
 def _setup_t3(work: Path):
+    import hashlib
     work.mkdir(parents=True, exist_ok=True)
     exts = [".txt", ".csv", ".json", ".md", ".log", ".bak"]
+    originals = []
     for i in range(30):
         ext = exts[i % len(exts)]
         name = f"file_{i + 1:02d}{ext}"
-        (work / name).write_text(f"Sample content for {name}\nCategory hint: {'doc' if ext in ('.md', '.txt') else 'data' if ext in ('.csv', '.json') else 'archive'}\n")
+        content = f"Sample content for {name}\nCategory hint: {'doc' if ext in ('.md', '.txt') else 'data' if ext in ('.csv', '.json') else 'archive'}\n"
+        (work / name).write_text(content)
+        originals.append({"name": name, "sha256": hashlib.sha256(content.encode()).hexdigest()})
     (work / "SPEC.md").write_text(T3_SPEC)
+    (work / ".t3_manifest.json").write_text(json.dumps({"originals": originals}, indent=2))
     (work / "meta.json").write_text(json.dumps({"task": "T3"}, indent=2))
 
 
