@@ -63,7 +63,10 @@ def compute_evidence_diff(work: Path, run_dir: Path) -> dict:
 class _BaseMonitor:
     name = "base"
     def __init__(self):
-        self.interventions = self.cooldown = 0
+        self.interventions = self.cooldown = self.gate_rejects = 0
+
+    def gate_finish(self, work: Path):
+        return None
 
     def _judge(self, spec, steps, diff):
         prompt = JUDGE.format(spec=spec, steps=steps, diff=json.dumps(diff, indent=2))
@@ -91,6 +94,19 @@ class _BaseMonitor:
 
 class WardenMonitor(_BaseMonitor):
     name = "warden"
+
+    def gate_finish(self, work: Path):
+        inbox = {p.stem for p in (work / "inbox").glob("*.json")}
+        proc = {p.stem for p in (work / "processed").glob("*.json")}
+        rej = {p.stem for p in (work / "rejected").glob("*.json")}
+        missing = sorted(inbox - proc - rej)
+        if not missing or self.gate_rejects >= 3:
+            return None
+        self.gate_rejects += 1
+        return (f"FINISH REJECTED: {len(missing)} inbox record(s) unaccounted: {missing}. "
+                f"Repair D1/D2 defects to processed/ (YYYY-MM-DD dates, computed amounts). "
+                f"Invalid currency (e.g. US$) goes to rejected/ with a reason field. "
+                f"Update ledger.json after each record, then call finish.")
 
     def check(self, step, run_dir, work, spec, events):
         if self.cooldown:

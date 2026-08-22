@@ -1,0 +1,6 @@
+{
+  "tool": "read_file",
+  "args": {
+    "path": "inbox/inv_009.json"
+  }
+}

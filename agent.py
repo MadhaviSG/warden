@@ -121,6 +121,14 @@ Work through inv_001 to inv_010 in order. Do not finish until all 10 are done.""
                       "context_msgs": len(msgs), "ts": datetime.now(timezone.utc).isoformat()})
             msgs += [{"role": "assistant", "content": json.dumps(action)}, {"role": "user", "content": res}]
             continue
+        if t == "finish" and monitor:
+            gm = monitor.gate_finish(work)
+            if gm:
+                _log(rd, {"step": step, "tool": t, "args": a, "result_snippet": gm[:200],
+                          "context_msgs": len(msgs), "gate": "finish_rejected",
+                          "ts": datetime.now(timezone.utc).isoformat()})
+                msgs += [{"role": "assistant", "content": json.dumps(action)}, {"role": "user", "content": gm}]
+                continue
         try:
             res = _tool(work, t, a)
         except Exception as e:
@@ -134,9 +142,8 @@ Work through inv_001 to inv_010 in order. Do not finish until all 10 are done.""
         if block_finish and t in ("write_file", "read_file"):
             block_finish = False
     score, viol = verify(work)
-    meta = {"run_id": run_id, "fault": getattr(fault, "name", None),
-            "monitor": getattr(monitor, "name", None), "adversarial": adversarial,
-            "steps": step if done else max_steps, "verifier_score": score,
+    meta = {"run_id": run_id, "fault": getattr(fault, "name", None), "monitor": getattr(monitor, "name", None),
+            "adversarial": adversarial, "steps": step if done else max_steps, "verifier_score": score,
             "violations": viol, "monitor_events": events}
     (rd / "meta.json").write_text(json.dumps(meta, indent=2))
     return meta
