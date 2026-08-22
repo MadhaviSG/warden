@@ -16,3 +16,7 @@
 | Task 1: live dashboard launcher | PASS | solo fault@18 score=5; warden score=100, MONITOR ALERT step 20 | 2026-08-22 16:00 |
 | Task 2: EWMA weak-signal aggregation | PASS | [40,45,50] aggregate; [5,5,95] single; cooldown ok | 2026-08-22 16:01 |
 | Task 3: actor-critic docs + push | PASS | README live launcher + EWMA; committed main | 2026-08-22 16:02 |
+| Task 1: runtime fault injection | PASS | inject.jsonl + POST /api/inject; F3@step11 → Warden score=90@step15 | 2026-08-22 16:13 |
+| Task 2: dual concurrent live runs | PASS | left/right columns, RACE, fixture snapshot, independent polling | 2026-08-22 16:14 |
+| Task 3: free-form tasks + generic critic | PASS | T1-T4 + custom; generic evidence diff + judge gate for T3/T4 | 2026-08-22 16:14 |
+| Task 4: interception visibility polish | PASS | WARDEN CHECK feed, intervention/gate banners, counter strip | 2026-08-22 16:14 |

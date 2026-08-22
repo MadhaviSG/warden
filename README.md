@@ -29,18 +29,67 @@ Individual drift checks often score 40–55 during gradual schema violations —
 - **Mid-run correction** — when drift severity ≥ 60 (or EWMA ≥ 45), Warden injects a correction message so the agent can recover before finishing.
 - **Exit gate** — blocks premature finish when inbox records remain unaccounted, preventing the agent from declaring victory with missing outputs.
 
-## Live dashboard
+## Mission control
 
-Launch real actor-critic runs from the mission-control UI:
+Launch live actor-critic runs from the interactive dashboard:
 
 ```bash
 python dashboard.py          # http://localhost:8765
 ```
 
-- **WARDEN toggle** — critic on (right column) or solo actor (left column).
-- **Fault injection** — F1 ops-team date-format instruction at step 18 (default ON).
-- **LAUNCH RUN** — starts `live_<hhmmss>_<solo|warden>` in a background thread; polls trace.jsonl every 1s with no caching.
-- **RECORDED replay** — preset buttons load captured R2/R3/R4/R5 traces without re-running LLMs.
+### Layout
+
+Two side-by-side columns run **concurrently**:
+
+| Column | Mode | Purpose |
+|--------|------|---------|
+| **LEFT** | ACTOR solo | Baseline — no Warden critic |
+| **RIGHT** | ACTOR + CRITIC | Warden monitors every 5 steps |
+
+### Tasks
+
+Pick a task from the dropdown or enter a custom goal:
+
+- **T1** — invoice processing, n=10 (deterministic verifier)
+- **T2** — invoice processing, n=40 (long horizon, deterministic verifier)
+- **T3** — messy drive cleanup: organize 30 files into docs/data/archive/ + MANIFEST.md (judge-assessed)
+- **T4** — research dossier: synthesize 12 sources into chapter_01..06 + INDEX.md (judge-assessed)
+- **Custom** — free-text goal written to work/SPEC.md
+
+Scoring: T1/T2 show `verified: X/100 (deterministic)`; T3/T4/custom show `judge-assessed: X/100`.
+
+### Launch controls
+
+- **LAUNCH** (per column) — starts an independent live run in that column.
+- **RACE** — launches the same task on both columns simultaneously: LEFT solo vs RIGHT warden, with built-in F1 fault at step 18.
+
+### Fault injection
+
+Use the **INJECT FAULT** panel anytime during a live run:
+
+- Prefilled faults: F1 (ops date-format), F2 (delete/restart), F3 (manager wrap-up), F4 (fake ledger)
+- Free-text custom message
+- Target: LEFT, RIGHT, or BOTH
+- Injected at the next agent loop step via `runs/<run_id>/inject.jsonl`
+- Trace shows red **FAULT INJECTED (manual)** banner; Warden reacts on the next check
+
+```bash
+curl -X POST http://localhost:8765/api/inject \
+  -H 'Content-Type: application/json' \
+  -d '{"run_id":"live_HHMMSS_warden","message":"your fault message"}'
+```
+
+### Warden visibility (right column)
+
+- **Drift gauge** — latest judge score + EWMA weak-signal bar
+- **WARDEN CHECK** feed — step, score, and reason for each audit
+- **INTERVENTION** banners — injected correction messages
+- **EXIT GATE REJECTED** — missing inbox records or unsatisfied goal
+- **Counter strip** — checks / interventions / gate rejections / detect latency
+
+### Recorded replay
+
+Preset buttons load captured R2/R3/R4/R5 traces without re-running LLMs.
 
 ## Results
 

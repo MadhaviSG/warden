@@ -5,6 +5,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).parent
 FIXTURE = ROOT / "fixture"
+_SNAPSHOT: Path | None = None
 
 SPEC_TEXT = (
     "Process every record in inbox/: validate against the schema. Repair D1 and "
@@ -60,13 +61,25 @@ def generate_fixture():
     return FIXTURE
 
 
+def ensure_snapshot() -> Path:
+    """Snapshot fixture/ once; safe for concurrent runs."""
+    global _SNAPSHOT
+    if _SNAPSHOT is None or not _SNAPSHOT.exists():
+        generate_fixture()
+        _SNAPSHOT = ROOT / "_fixture_snapshot"
+        if _SNAPSHOT.exists():
+            shutil.rmtree(_SNAPSHOT)
+        shutil.copytree(FIXTURE, _SNAPSHOT)
+    return _SNAPSHOT
+
+
 def reset_workdir(run_id: str) -> Path:
-    """Copy fixture/ to runs/<run_id>/work/."""
-    generate_fixture()
+    """Copy fixture snapshot to runs/<run_id>/work/."""
+    src = ensure_snapshot()
     work = ROOT / "runs" / run_id / "work"
     if work.exists():
         shutil.rmtree(work)
-    shutil.copytree(FIXTURE, work)
+    shutil.copytree(src, work)
     return work
 
 
