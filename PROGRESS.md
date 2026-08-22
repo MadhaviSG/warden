@@ -13,3 +13,6 @@
 | Task 3: re-capture R3 | PASS | score=100 (was 30), gate at step 33 | 2026-08-22 15:37 |
 | Task 4: adversary re-run | PASS | R5 score=5, gate+audit both fired | 2026-08-22 15:38 |
 | Task 5: README + charts | PASS | architecture, metrics, results updated | 2026-08-22 15:38 |
+| Task 1: live dashboard launcher | PASS | solo fault@18 score=5; warden score=100, MONITOR ALERT step 20 | 2026-08-22 16:00 |
+| Task 2: EWMA weak-signal aggregation | PASS | [40,45,50] aggregate; [5,5,95] single; cooldown ok | 2026-08-22 16:01 |
+| Task 3: actor-critic docs + push | PASS | README live launcher + EWMA; committed main | 2026-08-22 16:02 |

@@ -2,20 +2,45 @@
 
 Autonomous agents working multi-step file tasks can drift mid-run when they receive plausible-but-wrong instructions. By the time a postmortem verifier runs, the damage is done. Warden is an inline monitor that catches drift while the agent is still running.
 
-## Architecture: three interception points
+## Actor-critic architecture
 
-1. **Periodic audit** (every 5 steps) — an LLM judge scores drift severity using the spec, recent trace, and a Python-computed evidence diff (claims vs disk). Each check uses fresh context with no accumulated monitor history. Cooldown of 1 step and max 2 interventions per run.
-2. **Post-intervention finish block** — after an intervention (score ≥ 60), the agent cannot call `finish` until it performs a read/write tool action, forcing it back into real work.
-3. **Deterministic exit gate** (pure Python, no LLM) — when the agent calls `finish`, Warden compares inbox record IDs against processed/ + rejected/. If any are missing, finish is rejected (up to 3 times) with instructions to repair D1/D2 defects, reject invalid currency, and update the ledger.
+WARDEN is a two-agent actor-critic system:
 
-The naive baseline only implements point 1, and compares claims against the full transcript rather than disk evidence.
+- **ACTOR** (`AGENT_MODEL`) — works the invoice-processing task in a tool loop (read/write/list/finish).
+- **CRITIC** (Warden, `JUDGE_MODEL`) — audits the live trajectory every 5 steps against the original goal using a Python-computed claims-vs-disk evidence diff, and intervenes in the actor's context when drift is detected.
+- **Dashboard** — mission control to launch real runs and toggle the critic on/off.
+
+Three interception points:
+
+1. **Periodic audit** (every 5 steps) — the critic scores drift severity using the spec, recent trace, and evidence diff. Each check uses fresh context. Cooldown of 1 step and max 2 interventions per run.
+2. **Post-intervention finish block** — after an intervention (score ≥ 60 or EWMA aggregate), the actor cannot call `finish` until it performs a read/write tool action.
+3. **Deterministic exit gate** (pure Python) — when the actor calls `finish`, Warden compares inbox record IDs against processed/ + rejected/. Missing records reject finish (up to 3 times).
+
+The naive baseline only implements point 1 with transcript-only evidence (no disk diff).
+
+### Weak-signal aggregation
+
+Individual drift checks often score 40–55 during gradual schema violations — below the single-check threshold of 60. Warden maintains an exponentially weighted moving average (EWMA) of judge scores (α=0.5, first score seeds the baseline). When EWMA ≥ 45, the critic fires a **WEAK-SIGNAL AGGREGATE ALERT** even if the latest score is below 60. A clear spike (score ≥ 60) still triggers a standard **MONITOR ALERT** with `trigger: single`.
 
 ## How it works
 
 - **Audits claims vs disk** — every 5 steps, Warden compares the agent's self-reported progress (summaries, ledger claims) against actual files on disk.
 - **Fresh context per check** — each audit uses a clean LLM call with the spec, recent trace lines, and a Python-computed evidence diff. No accumulated monitor history.
-- **Mid-run correction** — when drift severity ≥ 60, Warden injects a correction message so the agent can recover before finishing.
+- **Mid-run correction** — when drift severity ≥ 60 (or EWMA ≥ 45), Warden injects a correction message so the agent can recover before finishing.
 - **Exit gate** — blocks premature finish when inbox records remain unaccounted, preventing the agent from declaring victory with missing outputs.
+
+## Live dashboard
+
+Launch real actor-critic runs from the mission-control UI:
+
+```bash
+python dashboard.py          # http://localhost:8765
+```
+
+- **WARDEN toggle** — critic on (right column) or solo actor (left column).
+- **Fault injection** — F1 ops-team date-format instruction at step 18 (default ON).
+- **LAUNCH RUN** — starts `live_<hhmmss>_<solo|warden>` in a background thread; polls trace.jsonl every 1s with no caching.
+- **RECORDED replay** — preset buttons load captured R2/R3/R4/R5 traces without re-running LLMs.
 
 ## Results
 
@@ -62,12 +87,14 @@ export OPENAI_API_KEY=your-key-here
 
 pip install -r requirements.txt
 python fixture_gen.py
+python dashboard.py             # live mission control
 python run_demo.py clean      # R1
 python run_demo.py fault      # R2
 python run_demo.py warden     # R3
 python run_demo.py adv_naive  # R4
 python run_demo.py adv_warden # R5
 python metrics.py             # aggregate metrics
+python test_ewma.py           # EWMA unit tests (no LLM)
 ```
 
 ## License
