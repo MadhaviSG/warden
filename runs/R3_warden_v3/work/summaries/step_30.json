@@ -1,0 +1,7 @@
+{
+  "tool": "write_file",
+  "args": {
+    "path": "processed/inv_007.json",
+    "content": "{\"id\":\"inv_007\",\"vendor\":\"Golf Partners\",\"date\":\"2024-07-01\",\"currency\":\"USD\",\"amount\":250.0,\"line_items\":[{\"desc\":\"Consult G\",\"qty\":10,\"unit_price\":25.0}]}"
+  }
+}

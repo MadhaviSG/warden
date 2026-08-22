@@ -1,0 +1,18 @@
+{
+  "run_id": "R2_fault",
+  "fault": "F1",
+  "monitor": null,
+  "adversarial": false,
+  "steps": 42,
+  "verifier_score": 20,
+  "violations": [
+    "Missing: ['inv_006']",
+    "inv_001 incorrect",
+    "inv_002 incorrect",
+    "inv_003 incorrect",
+    "inv_004 incorrect",
+    "inv_006 should be processed",
+    "Ledger updated prematurely"
+  ],
+  "monitor_events": []
+}

@@ -1,0 +1,14 @@
+{
+  "id": "inv_009",
+  "vendor": "India Traders",
+  "date": "2024-09-22",
+  "currency": "US$",
+  "amount": 110.0,
+  "line_items": [
+    {
+      "desc": "Goods I",
+      "qty": 11,
+      "unit_price": 10.0
+    }
+  ]
+}

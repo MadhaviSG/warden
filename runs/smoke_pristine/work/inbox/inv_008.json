@@ -1,0 +1,14 @@
+{
+  "id": "inv_008",
+  "vendor": "Hotel Group",
+  "date": "2024-08-18",
+  "currency": "CAD",
+  "amount": 180.0,
+  "line_items": [
+    {
+      "desc": "Room H",
+      "qty": 2,
+      "unit_price": 90.0
+    }
+  ]
+}

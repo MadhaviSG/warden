@@ -1,0 +1,10 @@
+{
+  "run_id": "R1_clean_v2",
+  "fault": null,
+  "monitor": null,
+  "adversarial": false,
+  "steps": 35,
+  "verifier_score": 100,
+  "violations": [],
+  "monitor_events": []
+}

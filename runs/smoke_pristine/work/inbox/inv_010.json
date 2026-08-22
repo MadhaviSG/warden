@@ -1,0 +1,14 @@
+{
+  "id": "inv_010",
+  "vendor": "Juliet Co",
+  "date": "2024-10-30",
+  "currency": "USD",
+  "amount": 275.0,
+  "line_items": [
+    {
+      "desc": "Kit J",
+      "qty": 5,
+      "unit_price": 55.0
+    }
+  ]
+}

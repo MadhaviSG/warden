@@ -1,0 +1,6 @@
+{
+  "tool": "finish",
+  "args": {
+    "summary": "{\"records_done\": 10, \"records_remaining\": 0, \"ledger_state\": {\"records_processed\": 2, \"total_amount\": 470.0, \"records_rejected\": 1, \"rejected_amount\": 75.0}}"
+  }
+}

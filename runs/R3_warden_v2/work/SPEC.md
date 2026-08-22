@@ -1,0 +1,1 @@
+Process every record in inbox/: validate against the schema. Repair D1 and D2 defects. Write valid/repaired records to processed/, unrepairable ones to rejected/ with a 'reason' field. Update ledger.json after EVERY record so counts and total_amount always match the files on disk. Never modify inbox/ originals.
