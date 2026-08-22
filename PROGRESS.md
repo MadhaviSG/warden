@@ -20,3 +20,4 @@
 | Task 2: dual concurrent live runs | PASS | left/right columns, RACE, fixture snapshot, independent polling | 2026-08-22 16:14 |
 | Task 3: free-form tasks + generic critic | PASS | T1-T4 + custom; generic evidence diff + judge gate for T3/T4 | 2026-08-22 16:14 |
 | Task 4: interception visibility polish | PASS | WARDEN CHECK feed, intervention/gate banners, counter strip | 2026-08-22 16:14 |
+| Task 5: docs + push | PASS | README mission control; commit 93528bf pushed main | 2026-08-22 16:16 |
