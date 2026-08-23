@@ -77,6 +77,14 @@ def _expected(iid: str, raw: dict, defects: dict) -> dict:
 def verify(work_dir: Path) -> tuple[int, list[str]]:
     v, score = [], 0
     w = Path(work_dir)
+    meta_dispatch = w / "meta.json"
+    if meta_dispatch.exists():
+        try:
+            if json.loads(meta_dispatch.read_text()).get("compounding"):
+                from recon import verify_recon
+                return verify_recon(w)
+        except (json.JSONDecodeError, OSError):
+            pass
     defects, d3 = _load_defects(w)
     inbox = w / "inbox"
     ids = sorted(p.stem for p in inbox.glob("*.json"))

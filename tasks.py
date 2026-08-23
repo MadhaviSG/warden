@@ -4,6 +4,7 @@ import shutil
 from pathlib import Path
 
 from fixture_gen import INVOICES, DEFECTS, ROOT, ensure_snapshot, generate_fixture
+from recon import generate_recon
 from verify import derive_defects, inbox_hashes, VALID_CCY, DATE_ISO
 
 INVOICE_INVARIANTS = {
@@ -18,6 +19,9 @@ TASKS = {
     "T2": {"label": "T2 invoice n=40", "deterministic": True, "max_steps": 120, "n": 40},
     "T3": {"label": "T3 messy drive cleanup", "deterministic": True, "max_steps": 60},
     "T4": {"label": "T4 research dossier", "deterministic": True, "max_steps": 80},
+    "R50": {"label": "R50 reconciliation n=50 (compounding)", "deterministic": True, "max_steps": 160, "n": 50},
+    "R100": {"label": "R100 reconciliation n=100 (compounding)", "deterministic": True, "max_steps": 320, "n": 100},
+    "R200": {"label": "R200 reconciliation n=200 (compounding)", "deterministic": True, "max_steps": 640, "n": 200},
 }
 
 T3_SPEC = (
@@ -145,6 +149,12 @@ def setup_task(run_id: str, task_id: str = "T1", custom_goal: str | None = None)
 
     if task_id == "T4":
         _setup_t4(work)
+        return work
+
+    if task_id in ("R50", "R100", "R200"):
+        n = TASKS[task_id]["n"]
+        work.mkdir(parents=True)
+        generate_recon(work, n)
         return work
 
     # fallback
