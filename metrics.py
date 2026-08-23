@@ -64,7 +64,10 @@ def compute_run(key: str, info: dict) -> dict:
         ft = next((l.get("ts") for l in _read_trace(run_dir)[0] if l.get("step") == fault_step), None)
         if fs and ft and (a := _parse_ts(fs)) and (b := _parse_ts(ft)):
             lat_s = (a - b).total_seconds()
-    fps = sum(1 for c in checks if c.get("score", 0) >= 60 and fault_step and c.get("step", 0) < fault_step)
+    if fault_step is None:
+        fps = len(interventions)
+    else:
+        fps = sum(1 for c in checks if c.get("score", 0) >= 60 and c.get("step", 0) < fault_step)
     return {"run": key, "run_id": info["run_id"], "verifier_score": meta.get("verifier_score"),
             "steps": meta.get("steps"), "wall_clock_s": wall, "monitor_checks": len(checks),
             "interventions": len(interventions), "fault_step": fault_step, "detect_step": detect_step,

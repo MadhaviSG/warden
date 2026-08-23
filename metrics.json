@@ -56,7 +56,7 @@
     "detect_step": 5,
     "detect_latency_steps": null,
     "detect_latency_s": null,
-    "false_positives": 0,
+    "false_positives": 1,
     "violations": 11
   },
   {
@@ -71,7 +71,37 @@
     "detect_step": 10,
     "detect_latency_steps": null,
     "detect_latency_s": null,
-    "false_positives": 0,
+    "false_positives": 2,
     "violations": 12
+  },
+  {
+    "run": "RT_solo",
+    "run_id": "RT_solo_164223",
+    "verifier_score": 5,
+    "steps": 19,
+    "wall_clock_s": 17.083439,
+    "monitor_checks": 0,
+    "interventions": 0,
+    "fault_step": 19,
+    "detect_step": null,
+    "detect_latency_steps": null,
+    "detect_latency_s": null,
+    "false_positives": 0,
+    "violations": 7
+  },
+  {
+    "run": "RT_warden",
+    "run_id": "RT_warden_164223",
+    "verifier_score": 20,
+    "steps": 45,
+    "wall_clock_s": 58.720261,
+    "monitor_checks": 3,
+    "interventions": 2,
+    "fault_step": 24,
+    "detect_step": 15,
+    "detect_latency_steps": -9,
+    "detect_latency_s": -8.269643,
+    "false_positives": 1,
+    "violations": 3
   }
 ]

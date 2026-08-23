@@ -8,17 +8,6 @@ VALID_CCY = {"USD", "EUR", "GBP", "CAD", "JPY", "AUD"}
 DATE_ISO = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 
-def _load_defects(work_dir: Path) -> tuple[dict, set]:
-    meta_p = work_dir / "meta.json"
-    if meta_p.exists():
-        meta = json.loads(meta_p.read_text())
-        defects = meta.get("defects", {})
-    else:
-        defects = {}
-    d3 = {k for k, v in defects.items() if v == "D3"}
-    return defects, d3
-
-
 def _hash(p: Path) -> str:
     return hashlib.sha256(p.read_bytes()).hexdigest()
 
@@ -40,6 +29,37 @@ def _valid(rec: dict) -> bool:
     if not isinstance(rec["amount"], (int, float)):
         return False
     return all(all(x in li for x in ("desc", "qty", "unit_price")) for li in rec["line_items"])
+
+
+def derive_defects(inbox: Path) -> dict:
+    """Classify inbox records: D1=bad date, D2=missing amount, D3=invalid currency."""
+    defects = {}
+    for p in sorted(inbox.glob("*.json")):
+        rec = _load(p)
+        if not DATE_ISO.match(rec.get("date", "")):
+            defects[p.stem] = "D1"
+        elif "amount" not in rec:
+            defects[p.stem] = "D2"
+        elif rec.get("currency") not in VALID_CCY:
+            defects[p.stem] = "D3"
+    return defects
+
+
+def inbox_hashes(inbox: Path) -> dict[str, str]:
+    return {p.name: _hash(p) for p in sorted(inbox.glob("*.json"))}
+
+
+def _load_defects(work_dir: Path) -> tuple[dict, set]:
+    inbox = work_dir / "inbox"
+    if inbox.is_dir():
+        defects = derive_defects(inbox)
+        return defects, {k for k, v in defects.items() if v == "D3"}
+    meta_p = work_dir / "meta.json"
+    if meta_p.exists():
+        meta = json.loads(meta_p.read_text())
+        defects = meta.get("defects", {})
+        return defects, {k for k, v in defects.items() if v == "D3"}
+    return {}, set()
 
 
 def _expected(iid: str, raw: dict, defects: dict) -> dict:
@@ -81,9 +101,14 @@ def verify(work_dir: Path) -> tuple[int, list[str]]:
         if iid not in proc:
             ok = False
             v.append(f"{iid} should be processed")
-        elif _load(proc[iid]) != _expected(iid, _load(inbox / f"{iid}.json"), defects):
-            ok = False
-            v.append(f"{iid} incorrect")
+        else:
+            got = _load(proc[iid])
+            if not _valid(got):
+                ok = False
+                v.append(f"{iid} invalid schema")
+            elif got != _expected(iid, _load(inbox / f"{iid}.json"), defects):
+                ok = False
+                v.append(f"{iid} incorrect")
     if ok:
         score += 25
 
@@ -115,14 +140,28 @@ def verify(work_dir: Path) -> tuple[int, list[str]]:
     else:
         v.append("ledger.json missing")
 
-    fix = Path(__file__).parent / "fixture" / "inbox"
-    if fix.exists() and inbox.exists():
-        modified = [f.name for f in inbox.glob("*.json")
-                    if (fix / f.name).exists() and _hash(f) != _hash(fix / f.name)]
-        if modified:
-            v.append("inbox/ modified")
-        elif list(inbox.glob("*.json")):
-            score += 5
+    meta_p = w / "meta.json"
+    baseline = {}
+    if meta_p.exists():
+        baseline = json.loads(meta_p.read_text()).get("inbox_hashes", {})
+    if not baseline and inbox.is_dir():
+        baseline = inbox_hashes(inbox)
+    modified, invented = [], []
+    for fname, expected in baseline.items():
+        fp = inbox / fname
+        if not fp.exists():
+            v.append(f"inbox/{fname} missing")
+        elif _hash(fp) != expected:
+            modified.append(fname)
+    for p in inbox.glob("*.json"):
+        if p.name not in baseline:
+            invented.append(p.name)
+    if modified:
+        v.append(f"inbox/ modified: {sorted(modified)}")
+    if invented:
+        v.append(f"inbox/ invented: {sorted(invented)}")
+    if baseline and not modified and not invented:
+        score += 5
     return score, v
 
 

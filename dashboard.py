@@ -1,6 +1,7 @@
 """Actor-critic mission control: dual live runs, fault injection, task launcher."""
 import json
 import re
+import secrets
 import threading
 from datetime import datetime
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
@@ -17,7 +18,8 @@ from tasks import PREFILLED_FAULTS, TASKS
 ROOT = Path(__file__).parent
 RUNS_DIR = ROOT / "runs"
 STATIC = ROOT / "static"
-RUN_ID_RE = re.compile(r"^[A-Za-z0-9_]{1,64}$")
+RUN_ID_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
+MAX_BODY = 65536
 _lock = threading.Lock()
 _live = {
     "left": {"running": False, "run_id": None, "done": False, "warden": False, "task": "T1"},
@@ -29,7 +31,9 @@ def _resolve_run_dir(run_id: str) -> Path | None:
     if not run_id or not RUN_ID_RE.match(run_id):
         return None
     rd = (RUNS_DIR / run_id).resolve()
-    if not str(rd).startswith(str(RUNS_DIR.resolve())):
+    try:
+        rd.relative_to(RUNS_DIR.resolve())
+    except ValueError:
         return None
     return rd
 
@@ -44,6 +48,14 @@ def _run_bg(run_id: str, column: str, warden: bool, fault, task: str, custom_goa
             _live[column]["done"] = True
 
 
+def _reserve_run_id(tag: str) -> str | None:
+    for _ in range(10):
+        run_id = f"live_{datetime.now().strftime('%H%M%S')}_{tag}_{secrets.token_hex(3)}"
+        if not (RUNS_DIR / run_id).exists():
+            return run_id
+    return None
+
+
 def launch(column: str, warden: bool, fault_name: str | None, task: str = "T1",
            custom_goal: str | None = None) -> dict:
     column = column if column in ("left", "right") else "left"
@@ -51,7 +63,9 @@ def launch(column: str, warden: bool, fault_name: str | None, task: str = "T1",
         if _live[column]["running"]:
             return {"error": "busy", "status": 409, "column": column}
         tag = "warden" if warden else "solo"
-        run_id = f"live_{datetime.now().strftime('%H%M%S')}_{tag}"
+        run_id = _reserve_run_id(tag)
+        if not run_id:
+            return {"error": "run_id allocation failed", "status": 500}
         _live[column].update(running=True, run_id=run_id, done=False, warden=warden, task=task)
     fault = make_fault(fault_name) if fault_name else None
     threading.Thread(target=_run_bg, args=(run_id, column, warden, fault, task, custom_goal),
@@ -63,9 +77,17 @@ def launch_race(task: str = "T1", fault_name: str = "F1", custom_goal: str | Non
     with _lock:
         if _live["left"]["running"] or _live["right"]["running"]:
             return {"error": "busy", "status": 409}
-    left = launch("left", warden=False, fault_name=fault_name, task=task, custom_goal=custom_goal)
-    right = launch("right", warden=True, fault_name=fault_name, task=task, custom_goal=custom_goal)
-    return {"left": left, "right": right}
+        left_id = _reserve_run_id("solo")
+        right_id = _reserve_run_id("warden")
+        if not left_id or not right_id:
+            return {"error": "run_id allocation failed", "status": 500}
+        _live["left"].update(running=True, run_id=left_id, done=False, warden=False, task=task)
+        _live["right"].update(running=True, run_id=right_id, done=False, warden=True, task=task)
+    fault = make_fault(fault_name) if fault_name else None
+    for col, run_id, warden in (("left", left_id, False), ("right", right_id, True)):
+        threading.Thread(target=_run_bg, args=(run_id, col, warden, fault, task, custom_goal),
+                         daemon=True).start()
+    return {"left": {"run_id": left_id, "column": "left"}, "right": {"run_id": right_id, "column": "right"}}
 
 
 def inject_fault(run_id: str, message: str) -> dict:
@@ -108,7 +130,10 @@ def list_runs() -> list:
             continue
         meta = d / "meta.json"
         if meta.exists():
-            m = json.loads(meta.read_text())
+            try:
+                m = json.loads(meta.read_text())
+            except (json.JSONDecodeError, OSError):
+                continue
             out.append({
                 "run_id": d.name,
                 "verifier_score": m.get("verifier_score"),
@@ -123,6 +148,8 @@ def list_runs() -> list:
 
 
 class Handler(BaseHTTPRequestHandler):
+    server_version = "WardenDashboard/1.0"
+
     def log_message(self, *_):
         pass
 
@@ -136,15 +163,29 @@ class Handler(BaseHTTPRequestHandler):
 
     def _read_json(self) -> dict:
         n = int(self.headers.get("Content-Length", 0))
-        return json.loads(self.rfile.read(n)) if n else {}
+        if n > MAX_BODY:
+            raise ValueError("body too large")
+        raw = self.rfile.read(n) if n else b""
+        return json.loads(raw) if raw else {}
 
-    def _require_local(self) -> bool:
-        return self.headers.get("X-Warden-Local") == "1"
+    def _allowed_origin(self) -> bool:
+        host = self.headers.get("Host", "127.0.0.1:8765")
+        expected = f"http://{host}"
+        origin = self.headers.get("Origin")
+        if origin:
+            return origin == expected
+        referer = self.headers.get("Referer", "")
+        return referer.startswith(expected + "/") or referer == expected
 
     def _serve_static(self, path: str):
         rel = path.lstrip("/") or "index.html"
         fp = (STATIC / rel).resolve()
-        if not fp.exists() or not str(fp).startswith(str(STATIC.resolve())):
+        try:
+            fp.relative_to(STATIC.resolve())
+        except ValueError:
+            self.send_error(404)
+            return
+        if not fp.exists():
             self.send_error(404)
             return
         ct = "text/html" if fp.suffix == ".html" else "application/octet-stream"
@@ -168,7 +209,10 @@ class Handler(BaseHTTPRequestHandler):
             p = rd / "meta.json" if rd else None
             if not p or not p.exists():
                 return self._json(400 if rid and not rd else 404, {"error": "not found"})
-            return self._json(200, json.loads(p.read_text()))
+            try:
+                return self._json(200, json.loads(p.read_text()))
+            except (json.JSONDecodeError, OSError):
+                return self._json(500, {"error": "corrupt meta"})
         if path == "/api/trace":
             rid = qs.get("run_id", [None])[0]
             rd = _resolve_run_dir(rid) if rid else None
@@ -206,10 +250,15 @@ class Handler(BaseHTTPRequestHandler):
         return self._serve_static(path)
 
     def do_POST(self):
-        if not self._require_local():
-            return self._json(403, {"error": "X-Warden-Local header required"})
+        if not self._allowed_origin():
+            return self._json(403, {"error": "origin not allowed"})
         path = urlparse(self.path).path
-        body = self._read_json()
+        try:
+            body = self._read_json()
+        except ValueError:
+            return self._json(413, {"error": "payload too large"})
+        except json.JSONDecodeError:
+            return self._json(400, {"error": "invalid json"})
         if path == "/api/launch":
             col = body.get("column", "left")
             r = launch(col, bool(body.get("warden")), body.get("fault") or None,

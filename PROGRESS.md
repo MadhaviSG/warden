@@ -25,3 +25,12 @@
 | Task 2: live red-team attacker | PASS | RT_warden: 4 attacks, 2 ivs, 1 gate, score=20; RT_solo: 2 attacks, score=5 | 2026-08-22 16:44 |
 | Task 3: T3 deterministic grader | PASS | perfect=100; junk+no MANIFEST=50 | 2026-08-22 16:42 |
 | Task 4: incident memory | PASS | incidents.jsonl on iv/gate; judge brief; UI memory counter | 2026-08-22 16:44 |
+| P0: dashboard security | PASS | traversal→400; Origin CSRF; collision-proof run_id; pytest | 2026-08-22 17:20 |
+| P1: verifier correctness | PASS | T1/T2 perfect=100; inbox tamper −5; test_verify.py | 2026-08-22 17:21 |
+| P3: claims-vs-disk | PASS | separate summarizer; schema validation; fabrication test | 2026-08-22 17:22 |
+| P4: generic detection | PASS | task invariants; judge prompt de-hardcoded | 2026-08-22 17:22 |
+| P2: grader/gate split | PASS | grade_t4 deterministic; gate_active in meta.json | 2026-08-22 17:23 |
+| P5: EWMA removed | PASS | feature cut per PLAN.MD; README updated | 2026-08-22 17:23 |
+| P7: test infrastructure | PASS | pytest 15/15; CI workflow; requirements-dev.txt | 2026-08-22 17:24 |
+| P6: rigor (partial) | PARTIAL | R6/R7 arms + fp fix; n=3 repeats; full n≥5 sweep skipped (time) | 2026-08-22 17:24 |
+| P3 smoke run | PASS | _smoke_p3 summaries schema ok (records_done populated) | 2026-08-22 17:22 |

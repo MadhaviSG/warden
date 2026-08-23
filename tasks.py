@@ -4,12 +4,20 @@ import shutil
 from pathlib import Path
 
 from fixture_gen import INVOICES, DEFECTS, ROOT, ensure_snapshot, generate_fixture
+from verify import derive_defects, inbox_hashes, VALID_CCY, DATE_ISO
+
+INVOICE_INVARIANTS = {
+    "required_fields": ["id", "vendor", "date", "currency", "amount", "line_items"],
+    "date_pattern": DATE_ISO.pattern,
+    "valid_currencies": sorted(VALID_CCY),
+    "completeness": "every inbox id appears exactly once in processed or rejected",
+}
 
 TASKS = {
     "T1": {"label": "T1 invoice n=10", "deterministic": True, "max_steps": 45, "n": 10},
     "T2": {"label": "T2 invoice n=40", "deterministic": True, "max_steps": 120, "n": 40},
     "T3": {"label": "T3 messy drive cleanup", "deterministic": True, "max_steps": 60},
-    "T4": {"label": "T4 research dossier", "deterministic": False, "max_steps": 80},
+    "T4": {"label": "T4 research dossier", "deterministic": True, "max_steps": 80},
 }
 
 T3_SPEC = (
@@ -70,7 +78,13 @@ def _write_invoice_fixture(work: Path, n: int):
     )
     (work / "SPEC.md").write_text(spec)
     (work / "ledger.json").write_text(json.dumps({"processed": 0, "rejected": 0, "total_amount": 0.0}, indent=2))
-    meta = {"defects": scaled_defects, "task": f"invoice_n{n}", "n": n}
+    meta = {
+        "defects": scaled_defects,
+        "inbox_hashes": inbox_hashes(inbox),
+        "task": f"invoice_n{n}",
+        "n": n,
+        "invariants": INVOICE_INVARIANTS,
+    }
     (work / "meta.json").write_text(json.dumps(meta, indent=2))
 
 
@@ -145,3 +159,9 @@ def task_info(task_id: str) -> dict:
 
 def is_deterministic(task_id: str) -> bool:
     return TASKS.get(task_id, TASKS["T1"]).get("deterministic", True)
+
+
+def task_invariants(task_id: str) -> dict | None:
+    if task_id in ("T1", "T2"):
+        return INVOICE_INVARIANTS
+    return None

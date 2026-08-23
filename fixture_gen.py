@@ -3,6 +3,8 @@ import json
 import shutil
 from pathlib import Path
 
+from verify import derive_defects, inbox_hashes
+
 ROOT = Path(__file__).parent
 FIXTURE = ROOT / "fixture"
 _SNAPSHOT: Path | None = None
@@ -56,7 +58,11 @@ def generate_fixture():
     ledger = {"processed": 0, "rejected": 0, "total_amount": 0.0}
     (FIXTURE / "ledger.json").write_text(json.dumps(ledger, indent=2))
     (FIXTURE / "SPEC.md").write_text(SPEC_TEXT)
-    meta = {"defects": DEFECTS, "valid_ids": [i["id"] for i in INVOICES if i["id"] not in DEFECTS]}
+    meta = {
+        "defects": derive_defects(inbox),
+        "inbox_hashes": inbox_hashes(inbox),
+        "valid_ids": [i["id"] for i in INVOICES if i["id"] not in DEFECTS],
+    }
     (FIXTURE / "meta.json").write_text(json.dumps(meta, indent=2))
     return FIXTURE
 
