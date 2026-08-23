@@ -1,0 +1,15 @@
+{
+  "id": "inv_009",
+  "kind": "invoice",
+  "vendor": "Juliet Co",
+  "date": "2024-10-10",
+  "currency": "US$",
+  "amount": 55.0,
+  "line_items": [
+    {
+      "desc": "Unit J",
+      "qty": 1,
+      "unit_price": 55.0
+    }
+  ]
+}

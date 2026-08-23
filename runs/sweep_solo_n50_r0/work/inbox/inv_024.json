@@ -1,0 +1,15 @@
+{
+  "id": "inv_024",
+  "kind": "invoice",
+  "vendor": "Juliet Co",
+  "date": "25-01-2024",
+  "currency": "USD",
+  "amount": 210.0,
+  "line_items": [
+    {
+      "desc": "Supply Y",
+      "qty": 7,
+      "unit_price": 30.0
+    }
+  ]
+}

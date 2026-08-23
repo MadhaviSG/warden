@@ -1,0 +1,9 @@
+{
+  "records_done": [],
+  "records_remaining": [],
+  "ledger_state": {
+    "processed": 50,
+    "rejected": 7,
+    "total_amount": 9780.0
+  }
+}

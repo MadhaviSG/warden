@@ -1,0 +1,1 @@
+{"id": "inv_030", "kind": "credit_note", "applies_to": "inv_022", "vendor": "Acme Corp", "date": "2024-07-04", "currency": "USD", "amount": 240.0, "line_items": [{"desc": "Widget E", "qty": 4, "unit_price": 60.0}], "reason": "applies_to invoice inv_022 is rejected or missing."}

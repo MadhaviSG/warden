@@ -1,0 +1,1 @@
+{"id": "inv_043", "kind": "invoice", "vendor": "November Ltd", "date": "2024-08-17", "currency": "USD", "amount": 200.0, "line_items": [{"desc": "Item R", "qty": 8, "unit_price": 25.0}], "running_total": 6615.0}

@@ -1,0 +1,1 @@
+{"id": "inv_039", "kind": "invoice", "vendor": "Juliet Co", "date": "2024-04-13", "currency": "USD", "amount": 420.0, "line_items": [{"desc": "Unit N", "qty": 4, "unit_price": 105.0}], "running_total": 9040.0}

@@ -1,0 +1,1 @@
+{"id": "inv_034", "kind": "invoice", "vendor": "Echo Ltd", "date": "2024-11-08", "currency": "USD", "amount": 640.0, "line_items": [{"desc": "Supply I", "qty": 8, "unit_price": 80.0}], "running_total": 8995.0}

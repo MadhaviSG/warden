@@ -1,0 +1,15 @@
+{
+  "id": "inv_013",
+  "kind": "invoice",
+  "vendor": "November Ltd",
+  "date": "2024-02-14",
+  "currency": "USD",
+  "amount": 375.0,
+  "line_items": [
+    {
+      "desc": "Item N",
+      "qty": 5,
+      "unit_price": 75.0
+    }
+  ]
+}

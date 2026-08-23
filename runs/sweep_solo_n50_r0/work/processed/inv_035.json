@@ -1,0 +1,1 @@
+{"id": "inv_035", "kind": "credit_note", "applies_to": "inv_034", "vendor": "Foxtrot", "date": "2024-12-09", "currency": "USD", "amount": 765.0, "line_items": [{"desc": "Batch J", "qty": 9, "unit_price": 85.0}], "running_total": 6630.0}

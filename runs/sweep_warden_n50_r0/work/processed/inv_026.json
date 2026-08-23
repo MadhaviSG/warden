@@ -1,0 +1,1 @@
+{"id": "inv_026", "kind": "invoice", "vendor": "Lima Works", "date": "2024-03-27", "currency": "USD", "amount": 360.0, "line_items": [{"desc": "Consult A", "qty": 9, "unit_price": 40.0}], "running_total": 5205.0}

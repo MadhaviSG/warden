@@ -1,0 +1,16 @@
+{
+  "id": "inv_045",
+  "kind": "credit_note",
+  "applies_to": "inv_022",
+  "vendor": "Acme Corp",
+  "date": "2024-10-19",
+  "currency": "USD",
+  "amount": 35.0,
+  "line_items": [
+    {
+      "desc": "Batch T",
+      "qty": 1,
+      "unit_price": 35.0
+    }
+  ]
+}

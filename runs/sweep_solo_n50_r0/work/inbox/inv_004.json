@@ -1,0 +1,15 @@
+{
+  "id": "inv_004",
+  "kind": "invoice",
+  "vendor": "Echo Ltd",
+  "date": "2024-05-05",
+  "currency": "USD",
+  "amount": 150.0,
+  "line_items": [
+    {
+      "desc": "Supply E",
+      "qty": 5,
+      "unit_price": 30.0
+    }
+  ]
+}

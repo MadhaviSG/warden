@@ -1,0 +1,15 @@
+{
+  "id": "inv_048",
+  "kind": "invoice",
+  "vendor": "Delta Co",
+  "date": "2024-01-22",
+  "currency": "US$",
+  "amount": 200.0,
+  "line_items": [
+    {
+      "desc": "Kit W",
+      "qty": 4,
+      "unit_price": 50.0
+    }
+  ]
+}

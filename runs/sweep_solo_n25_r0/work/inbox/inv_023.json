@@ -1,0 +1,15 @@
+{
+  "id": "inv_023",
+  "kind": "invoice",
+  "vendor": "India Traders",
+  "date": "2024-12-24",
+  "currency": "USD",
+  "amount": 150.0,
+  "line_items": [
+    {
+      "desc": "Item X",
+      "qty": 6,
+      "unit_price": 25.0
+    }
+  ]
+}

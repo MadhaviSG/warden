@@ -1,0 +1,15 @@
+{
+  "id": "inv_011",
+  "kind": "invoice",
+  "vendor": "Lima Works",
+  "date": "2024-12-12",
+  "currency": "USD",
+  "amount": 195.0,
+  "line_items": [
+    {
+      "desc": "Service L",
+      "qty": 3,
+      "unit_price": 65.0
+    }
+  ]
+}

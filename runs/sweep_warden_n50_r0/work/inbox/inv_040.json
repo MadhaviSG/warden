@@ -1,0 +1,16 @@
+{
+  "id": "inv_040",
+  "kind": "credit_note",
+  "applies_to": "inv_018",
+  "vendor": "Kilo SA",
+  "date": "2024-05-14",
+  "currency": "USD",
+  "amount": 50.0,
+  "line_items": [
+    {
+      "desc": "Widget O",
+      "qty": 5,
+      "unit_price": 10.0
+    }
+  ]
+}

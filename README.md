@@ -110,10 +110,10 @@ Reconciliation task with compounding invariants; emergent drift only. Regenerate
 <!-- SWEEP:START -->
 | Arm | N | Mean Score | Min | Max | Mean Steps |
 |-----|---|------------|-----|-----|------------|
-| solo | 25 | 60 | 60 | 60 | 37 |
-| solo | 50 | 60 | 60 | 60 | 102 |
-| warden | 25 | 85 | 85 | 85 | 54 |
-| warden | 50 | 60 | 60 | 60 | 104 |
+| solo | 25 | 60.0 | 60 | 60 | 37 |
+| solo | 50 | 60.0 | 60 | 60 | 99 |
+| warden | 25 | 85.0 | 85 | 85 | 54 |
+| warden | 50 | 5.0 | 5 | 5 | 160 |
 <!-- SWEEP:END -->
 
 ![Drift-free horizon](static/horizon_chart.png)

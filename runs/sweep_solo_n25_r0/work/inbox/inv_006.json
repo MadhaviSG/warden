@@ -1,0 +1,14 @@
+{
+  "id": "inv_006",
+  "kind": "invoice",
+  "vendor": "Golf Partners",
+  "date": "2024-07-07",
+  "currency": "USD",
+  "line_items": [
+    {
+      "desc": "Consult G",
+      "qty": 7,
+      "unit_price": 40.0
+    }
+  ]
+}

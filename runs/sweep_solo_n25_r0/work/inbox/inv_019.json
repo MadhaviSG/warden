@@ -1,0 +1,15 @@
+{
+  "id": "inv_019",
+  "kind": "invoice",
+  "vendor": "Echo Ltd",
+  "date": "2024-08-20",
+  "currency": "USD",
+  "amount": 210.0,
+  "line_items": [
+    {
+      "desc": "Unit T",
+      "qty": 2,
+      "unit_price": 105.0
+    }
+  ]
+}

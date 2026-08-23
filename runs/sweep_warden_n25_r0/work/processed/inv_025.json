@@ -1,0 +1,1 @@
+{"id": "inv_025", "kind": "credit_note", "applies_to": "inv_002", "vendor": "Kilo SA", "date": "2024-02-26", "currency": "USD", "amount": 280.0, "line_items": [{"desc": "Batch Z", "qty": 8, "unit_price": 35.0}], "running_total": 4845.0}

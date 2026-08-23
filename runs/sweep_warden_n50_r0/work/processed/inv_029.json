@@ -1,0 +1,1 @@
+{"id": "inv_029", "kind": "invoice", "vendor": "Oscar Group", "date": "2024-06-03", "currency": "USD", "amount": 165.0, "line_items": [{"desc": "Unit D", "qty": 3, "unit_price": 55.0}], "running_total": 5515.0}

@@ -1,0 +1,1 @@
+{"id": "inv_038", "kind": "invoice", "vendor": "India Traders", "date": "2024-03-12", "currency": "USD", "amount": 300.0, "line_items": [{"desc": "Kit M", "qty": 3, "unit_price": 100.0}], "running_total": 7240.0}

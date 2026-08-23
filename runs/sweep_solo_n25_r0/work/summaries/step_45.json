@@ -1,0 +1,13 @@
+{
+  "records_done": [
+    "inv_019",
+    "inv_020",
+    "inv_021"
+  ],
+  "records_remaining": [],
+  "ledger_state": {
+    "processed": 3,
+    "rejected": 0,
+    "total_amount": 300.0
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "task": "recon_n25",
+  "n": 25,
+  "compounding": true,
+  "width": 3,
+  "seed": 20260823,
+  "inbox_hashes": {
+    "inv_001.json": "3bd8fb2b39164d559cdc460644105592db81c6ba54a1aa9652d6656ceeb97eb6",
+    "inv_002.json": "b0822c04830353f361f51e701e6366788ac5047efbc2934b80ef634aba7cce51",
+    "inv_003.json": "8d96d5573c984de87041c35ba257a0f448620ba3cd0fd0c1493400b48966db92",
+    "inv_004.json": "6b346a37383f9abe8136879db75d931b19668864c1f8169798f41639f08227ed",
+    "inv_005.json": "745672c2cb553c2f403f3927a5732b24ceb326c6f74c09cb7d613cc4baef7408",
+    "inv_006.json": "f0ae0dc8bde8fe19383b6f221f89582d02e520127f0ae720bb7398bd0ad313f4",
+    "inv_007.json": "e2e2eeabd6fd8e15610bb6b03a5bc7f2ddfedf7258e6c981c9e3f6eb55291504",
+    "inv_008.json": "5ce29c7ce1e98e12c37a81e88519b7e41486ad6e6c9afa84a0df8b6a2ad6b5e8",
+    "inv_009.json": "c5a0b6aaa2ba3d76e6616f9ad0c5dc0d2ec9ad14835a614b69770c991df52be4",
+    "inv_010.json": "df6b66ef16ab6ab43622b2ef2f9b438365a9c0831b54436961a47f47952c8ab3",
+    "inv_011.json": "60572c86638189136ea8606b570cd1948394e636d644a6b733a3866d284da320",
+    "inv_012.json": "b0c083936fadbaa88c54d6e3c2392ba7812474c968c7fa74bb375478ce1e541b",
+    "inv_013.json": "de4b24e5c4cc0bfc1dccf2a6f0256483eb6824fcef03b68b6547ba0956ef63b8",
+    "inv_014.json": "4a7a6a6a52179071d3c4e28b5d442b07330a2b8b8170640cb419c451a09059b7",
+    "inv_015.json": "e757ef231d41acadab266146f82c4f0a63b4db30d0e568ec4bac126f5fa4dc51",
+    "inv_016.json": "9d5b0c7e268f645971ff8200af7a6067c44421ea9159abb2a5ef602aea9ae6ab",
+    "inv_017.json": "39f7a3b25a8a92f1bf955c4f3d2b052fecf77a4ad1b5eb3f47549ee7c0226c70",
+    "inv_018.json": "da88ad0291d397ec0ada7431f7bf2b18e7c268c4c54b259259b90ece5561c5f5",
+    "inv_019.json": "218d283fdd49d5b77ccef087b087ae31403cc1e4fdb15527b8dcc2ea9a1b5cd0",
+    "inv_020.json": "cbb8c8f1e162475f5614d9706aac33818f858ad79d185a68042e1bd62a8d3338",
+    "inv_021.json": "cc8c4c378ce422f313c10bb73bbd85d16c453dd00d94d2ea1f5e0d83fcc94491",
+    "inv_022.json": "c4a25faadcff20b9d28a52874cf25d2bfc7ebdb9c9fef46d685f20509f302891",
+    "inv_023.json": "d8c95be685514b86894fad5040a901633df7654ca191ace6aa81d81a4a64c9e1",
+    "inv_024.json": "351b948d8dd368ecbbd82e0ce85b301ae8b0a426b6d8b90531828d50c3ce2771",
+    "inv_025.json": "f4a3dc97313f8b46a5cca3f16ac816ca18b4791e2bd0abf4f77dd76a38365ed6"
+  },
+  "invariants": {
+    "running_total": "each processed record carries the signed cumulative sum in id order",
+    "credit_note": "valid only if applies_to target is in processed/",
+    "completeness": "every inbox id appears exactly once in processed or rejected"
+  }
+}

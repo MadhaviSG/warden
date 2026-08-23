@@ -1,0 +1,15 @@
+{
+  "id": "inv_016",
+  "kind": "invoice",
+  "vendor": "Beta LLC",
+  "date": "2024-05-17",
+  "currency": "USD",
+  "amount": 720.0,
+  "line_items": [
+    {
+      "desc": "Consult Q",
+      "qty": 8,
+      "unit_price": 90.0
+    }
+  ]
+}

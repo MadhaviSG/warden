@@ -1,0 +1,1 @@
+{"id": "inv_001", "kind": "invoice", "vendor": "Beta LLC", "date": "2024-02-02", "currency": "USD", "amount": 30.0, "line_items": [{"desc": "Service B", "qty": 2, "unit_price": 15.0}], "running_total": 30.0}

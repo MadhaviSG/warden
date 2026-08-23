@@ -1,0 +1,1 @@
+{"id": "inv_020", "kind": "credit_note", "applies_to": "inv_010", "vendor": "Foxtrot", "date": "2024-09-21", "currency": "USD", "amount": 30.0, "line_items": [{"desc": "Widget U", "qty": 3, "unit_price": 10.0}], "running_total": 3735.0}

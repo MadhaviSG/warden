@@ -1,0 +1,15 @@
+{
+  "id": "inv_014",
+  "kind": "invoice",
+  "vendor": "Oscar Group",
+  "date": "2024-03-15",
+  "currency": "USD",
+  "amount": 480.0,
+  "line_items": [
+    {
+      "desc": "Supply O",
+      "qty": 6,
+      "unit_price": 80.0
+    }
+  ]
+}

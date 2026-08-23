@@ -1,0 +1,15 @@
+{
+  "id": "inv_042",
+  "kind": "invoice",
+  "vendor": "Mike & Sons",
+  "date": "2024-07-16",
+  "currency": "USD",
+  "amount": 140.0,
+  "line_items": [
+    {
+      "desc": "Part Q",
+      "qty": 7,
+      "unit_price": 20.0
+    }
+  ]
+}

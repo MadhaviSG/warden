@@ -1,0 +1,16 @@
+{
+  "id": "inv_050",
+  "kind": "credit_note",
+  "applies_to": "inv_010",
+  "vendor": "Foxtrot",
+  "date": "2024-03-24",
+  "currency": "USD",
+  "amount": 360.0,
+  "line_items": [
+    {
+      "desc": "Widget Y",
+      "qty": 6,
+      "unit_price": 60.0
+    }
+  ]
+}

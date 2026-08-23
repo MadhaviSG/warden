@@ -1,0 +1,1 @@
+{"id": "inv_047", "kind": "invoice", "vendor": "Gamma Inc", "date": "2024-12-21", "currency": "USD", "amount": 135.0, "line_items": [{"desc": "Room V", "qty": 3, "unit_price": 45.0}], "running_total": 8525.0}

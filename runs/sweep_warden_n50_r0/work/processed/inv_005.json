@@ -1,0 +1,1 @@
+{"id": "inv_005", "kind": "invoice", "vendor": "Foxtrot", "date": "2024-06-06", "currency": "USD", "amount": 210.0, "line_items": [{"desc": "Batch F", "qty": 6, "unit_price": 35.0}], "running_total": 550.0}

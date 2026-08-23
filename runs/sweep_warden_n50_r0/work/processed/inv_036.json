@@ -1,0 +1,1 @@
+{"id": "inv_036", "kind": "invoice", "vendor": "Golf Partners", "date": "2024-01-10", "currency": "USD", "amount": 90.0, "line_items": [{"desc": "Consult K", "qty": 1, "unit_price": 90.0}], "running_total": 8320.0}

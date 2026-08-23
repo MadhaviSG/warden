@@ -1,0 +1,1 @@
+{"id": "inv_007", "kind": "invoice", "vendor": "Hotel Group", "date": "2024-08-08", "currency": "USD", "amount": 360.0, "line_items": [{"desc": "Room H", "qty": 8, "unit_price": 45.0}], "running_total": 1190.0}

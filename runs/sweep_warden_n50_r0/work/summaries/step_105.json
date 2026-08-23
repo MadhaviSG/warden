@@ -1,0 +1,51 @@
+{
+  "records_done": [
+    "inv_035",
+    "inv_030",
+    "inv_022"
+  ],
+  "records_remaining": [
+    "inv_001",
+    "inv_002",
+    "inv_003",
+    "inv_004",
+    "inv_005",
+    "inv_006",
+    "inv_007",
+    "inv_008",
+    "inv_009",
+    "inv_010",
+    "inv_011",
+    "inv_012",
+    "inv_013",
+    "inv_014",
+    "inv_015",
+    "inv_016",
+    "inv_017",
+    "inv_018",
+    "inv_019",
+    "inv_020",
+    "inv_021",
+    "inv_023",
+    "inv_024",
+    "inv_025",
+    "inv_026",
+    "inv_027",
+    "inv_028",
+    "inv_029",
+    "inv_031",
+    "inv_032",
+    "inv_033",
+    "inv_034",
+    "inv_036",
+    "inv_037",
+    "inv_038",
+    "inv_039",
+    "inv_040"
+  ],
+  "ledger_state": {
+    "processed": 50,
+    "rejected": 7,
+    "total_amount": 9780.0
+  }
+}
