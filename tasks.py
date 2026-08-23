@@ -1,5 +1,6 @@
 """Task definitions for mission control: T1–T4 and custom goals."""
 import json
+import re
 import shutil
 from pathlib import Path
 
@@ -151,8 +152,16 @@ def setup_task(run_id: str, task_id: str = "T1", custom_goal: str | None = None)
         _setup_t4(work)
         return work
 
-    if task_id in ("R50", "R100", "R200"):
-        n = TASKS[task_id]["n"]
+    m = re.match(r"^R(\d+)$", task_id)
+    if m:
+        n = int(m.group(1))
+        if task_id not in TASKS:
+            TASKS[task_id] = {
+                "label": f"R{n} reconciliation n={n} (compounding)",
+                "deterministic": True,
+                "max_steps": max(80, n * 4 + 40),
+                "n": n,
+            }
         work.mkdir(parents=True)
         generate_recon(work, n)
         return work

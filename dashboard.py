@@ -56,8 +56,25 @@ def _reserve_run_id(tag: str) -> str | None:
     return None
 
 
+def _resolve_task(task: str = "T1", n: int | None = None, custom_goal: str | None = None) -> str:
+    if custom_goal or task in ("T3", "T4", "custom"):
+        return task
+    if n is not None:
+        try:
+            n = int(n)
+        except (TypeError, ValueError):
+            pass
+        else:
+            if n == 10:
+                return "T1"
+            if n > 0:
+                return f"R{n}"
+    return task or "T1"
+
+
 def launch(column: str, warden: bool, fault_name: str | None, task: str = "T1",
-           custom_goal: str | None = None) -> dict:
+           custom_goal: str | None = None, n: int | None = None) -> dict:
+    task = _resolve_task(task, n, custom_goal)
     column = column if column in ("left", "right") else "left"
     with _lock:
         if _live[column]["running"]:
@@ -73,7 +90,9 @@ def launch(column: str, warden: bool, fault_name: str | None, task: str = "T1",
     return {"run_id": run_id, "column": column}
 
 
-def launch_race(task: str = "T1", fault_name: str = "F1", custom_goal: str | None = None) -> dict:
+def launch_race(task: str = "T1", fault_name: str = "F1", custom_goal: str | None = None,
+                n: int | None = None) -> dict:
+    task = _resolve_task(task, n, custom_goal)
     with _lock:
         if _live["left"]["running"] or _live["right"]["running"]:
             return {"error": "busy", "status": 409}
@@ -262,12 +281,13 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/launch":
             col = body.get("column", "left")
             r = launch(col, bool(body.get("warden")), body.get("fault") or None,
-                       body.get("task", "T1"), body.get("custom_goal"))
+                       body.get("task", "T1"), body.get("custom_goal"), body.get("n"))
             if r.get("status") == 409:
                 return self._json(409, r)
             return self._json(200, r)
         if path == "/api/race":
-            r = launch_race(body.get("task", "T1"), body.get("fault", "F1"), body.get("custom_goal"))
+            r = launch_race(body.get("task", "T1"), body.get("fault", "F1"),
+                            body.get("custom_goal"), body.get("n"))
             if r.get("status") == 409:
                 return self._json(409, r)
             return self._json(200, r)

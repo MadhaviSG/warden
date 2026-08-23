@@ -20,8 +20,8 @@ from pathlib import Path
 ROOT = Path(__file__).parent
 OUT = ROOT / "sweep_results.json"
 
-# N -> recon task id; N not listed falls back to a generated recon of that size
-_TASK_FOR_N = {50: "R50", 100: "R100", 200: "R200"}
+# N -> recon task id; any N maps to R{n} via tasks.setup_task
+_TASK_FOR_N = {25: "R25", 50: "R50", 100: "R100", 200: "R200"}
 
 
 def _task_for(n: int) -> str:
@@ -29,29 +29,45 @@ def _task_for(n: int) -> str:
 
 
 def _ensure_task(n: int):
-    """Register an ad-hoc recon task id (RN) so any N is runnable, not just presets."""
+    """Register an ad-hoc recon task id (RN) so any N is runnable."""
     from tasks import TASKS
     tid = _task_for(n)
     if tid not in TASKS:
         TASKS[tid] = {"label": f"reconciliation n={n}", "deterministic": True,
-                      "max_steps": max(60, n * 3 + 40), "n": n}
-        # teach setup_task to build it
-        import tasks as T
-        _orig = T.setup_task
-
-        def _patched(run_id, task_id="T1", custom_goal=None, _o=_orig):
-            if task_id == tid:
-                from recon import generate_recon
-                work = ROOT / "runs" / run_id / "work"
-                if work.exists():
-                    import shutil
-                    shutil.rmtree(work)
-                work.mkdir(parents=True)
-                generate_recon(work, n)
-                return work
-            return _o(run_id, task_id, custom_goal)
-        T.setup_task = _patched
+                      "max_steps": max(80, n * 4 + 40), "n": n}
     return tid
+
+
+def _horizon_chart(results: dict, path: Path):
+    """Score vs N line chart: solo vs warden from sweep_results."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    ns = sorted({r["n"] for r in results.values()})
+    if not ns:
+        return
+    solo, warden = [], []
+    for n in ns:
+        solo.append(results.get(f"solo_n{n}", {}).get("score_mean"))
+        warden.append(results.get(f"warden_n{n}", {}).get("score_mean"))
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.plot(ns, solo, "o-", color="#e74c3c", linewidth=2, markersize=8, label="solo")
+    ax.plot(ns, warden, "s-", color="#3498db", linewidth=2, markersize=8, label="warden")
+    ax.set_xlabel("Horizon N (records)", fontsize=13)
+    ax.set_ylabel("Verifier score", fontsize=13)
+    ax.set_title("Drift-free horizon: score vs task length", fontsize=15, fontweight="bold")
+    ax.set_ylim(0, 105)
+    ax.legend(fontsize=12)
+    ax.grid(True, alpha=0.3)
+    for x, ys, yw in zip(ns, solo, warden):
+        if ys is not None:
+            ax.annotate(f"{ys:.0f}", (x, ys), textcoords="offset points", xytext=(0, 8), ha="center", fontsize=10)
+        if yw is not None:
+            ax.annotate(f"{yw:.0f}", (x, yw), textcoords="offset points", xytext=(0, -12), ha="center", fontsize=10)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
 
 
 def _estimate_cost(ns, reps) -> float:
@@ -143,6 +159,8 @@ def main():
     results = run_sweep(ns, a.reps, fault, a.dry_run)
     OUT.write_text(json.dumps({"generated": time.strftime("%Y-%m-%d %H:%M"),
                                "fault": fault, "results": results}, indent=2))
+    chart_path = ROOT / "static" / "horizon_chart.png"
+    _horizon_chart(results, chart_path)
 
     print(f"\n{'arm':7} {'N':>5} {'mean':>6} {'min':>4} {'max':>4}")
     print("-" * 32)

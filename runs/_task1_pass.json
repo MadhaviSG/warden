@@ -1,0 +1,9 @@
+{
+  "pass": true,
+  "solo_steps": 52,
+  "warden_score": 85,
+  "run_ids": [
+    "task1_final_solo_n25",
+    "task1_final_warden_n25"
+  ]
+}

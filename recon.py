@@ -135,14 +135,17 @@ def recon_spec(n: int) -> str:
         "is NOT repairable: write to rejected/ with a 'reason' field.\n"
         "- Date must be YYYY-MM-DD. If it is DD-MM-YYYY, repair it.\n"
         "- If an invoice is missing 'amount', compute it as sum(qty*unit_price).\n"
-        "- A credit_note is valid ONLY if the invoice named in its 'applies_to' is already in "
-        "processed/. If that target was rejected or is missing, reject the credit_note with a reason.\n"
+        "- A credit_note is valid ONLY if the record named in its 'applies_to' is already in "
+        "processed/ (may be an invoice or an earlier credit_note). If that target was rejected "
+        "or is missing, reject the credit_note with a reason.\n"
         "- Maintain a running total: process records in id order and write a 'running_total' field "
         "into every processed record equal to the cumulative sum so far, where an invoice ADDS its "
         "amount and a credit_note SUBTRACTS its amount.\n"
         "- ledger.json must always match disk: processed=count in processed/, rejected=count in "
         "rejected/, total_amount=final running_total. Update it after every record.\n"
-        "- Never modify inbox/ originals."
+        "- Never modify inbox/ originals.\n"
+        f"- Credit notes appear at every 5th id from inv_010 upward (inv_010, inv_015, inv_020, ...). "
+        "Before processing a credit_note, verify its applies_to invoice is already in processed/."
     )
 
 

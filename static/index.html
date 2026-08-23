@@ -108,15 +108,43 @@ button.redteam{background:linear-gradient(135deg,#8b2635,#b3323f)}
 .col-actions{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
 .col-actions button{padding:6px 11px;font-size:12px}
 
-/* verdict hero */
-.verdict{padding:14px 16px;border-bottom:1px solid var(--border-soft);display:flex;align-items:baseline;gap:14px}
-.verdict .num{font-size:48px;font-weight:800;line-height:1;letter-spacing:-.02em;font-variant-numeric:proportional-nums}
-.verdict .den{font-size:16px;color:var(--muted);font-weight:600}
-.verdict .meta{margin-left:auto;text-align:right;font-size:11.5px;color:var(--ink-2)}
-.verdict .claim{display:inline-block;margin-top:3px;font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px}
-.claim.lie{background:var(--critical-soft);color:#ff8a8d}
-.claim.true{background:rgba(12,163,12,.16);color:#4fd44f}
+/* agent narration — readable at 3m */
+.narration{padding:12px 16px;border-bottom:1px solid var(--border-soft);background:var(--surface-2);
+  font-size:17px;font-weight:650;color:var(--ink);letter-spacing:.01em;line-height:1.35}
+.narration.idle{color:var(--muted);font-weight:500;font-size:15px}
+
+/* hero: records on disk */
+.hero{padding:16px 16px 12px;border-bottom:1px solid var(--border-soft)}
+.hero .disk{font-size:15px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+.hero .disk-row{display:flex;align-items:baseline;gap:10px;margin-top:6px;flex-wrap:wrap}
+.hero .disk-num{font-size:56px;font-weight:800;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:var(--ink)}
+.hero .disk-den{font-size:22px;color:var(--muted);font-weight:700}
+.hero .score-row{display:flex;align-items:baseline;gap:8px;margin-top:10px;flex-wrap:wrap}
+.hero .score-lbl{font-size:13px;color:var(--muted);font-weight:600}
+.hero .score-num{font-size:28px;font-weight:800;font-variant-numeric:tabular-nums}
+.hero .score-cap{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.45;max-width:420px}
 .num.g{color:#4fd44f}.num.w{color:var(--warning)}.num.c{color:#ff6b6f}.num.n{color:var(--muted)}
+
+/* warden verdict panel */
+.warden-panel{padding:12px 16px;border-bottom:1px solid var(--border-soft);background:rgba(57,135,229,.06)}
+.warden-panel .wp-title{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:#8cc0ff;font-weight:800;margin-bottom:6px}
+.warden-panel .wp-body{font-size:15px;color:var(--ink-2);line-height:1.45}
+.warden-panel .wp-body.alert{color:#ff9a9d;font-weight:600}
+.warden-panel.empty .wp-body{color:var(--muted);font-style:normal;font-size:14px}
+
+/* red intervention banners */
+.iv-banners{border-bottom:1px solid var(--border-soft)}
+.iv-banner{padding:10px 16px;background:var(--critical-soft);border-bottom:1px solid rgba(229,72,77,.25);
+  font-size:14px;font-weight:650;color:#ff9a9d;line-height:1.4}
+.iv-banner .iv-step{font-family:var(--mono);font-size:12px;color:#ff6b6f;margin-right:8px;font-weight:700}
+
+/* counter strip — demo counters */
+.counters{display:flex;gap:0;border-bottom:1px solid var(--border-soft);flex-wrap:wrap}
+.counter{flex:1;min-width:72px;padding:10px 12px;text-align:center;border-right:1px solid var(--border-soft);background:var(--surface)}
+.counter:last-child{border-right:none}
+.counter .ck{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:700}
+.counter .cv{font-size:24px;font-weight:800;margin-top:2px;font-variant-numeric:tabular-nums}
+.counter .cv.hot{color:#ff6b6f}.counter .cv.accent{color:var(--series)}
 
 /* stat tiles */
 .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border-soft);
@@ -182,6 +210,18 @@ svg.drift{width:100%;height:130px;display:block}
 
   <div class="deck">
     <div class="card ctl">
+      <span class="lbl">Horizon N</span>
+      <div class="row">
+        <select id="horizonSelect">
+          <option value="10" selected>n = 10 records</option>
+          <option value="25">n = 25 records</option>
+          <option value="50">n = 50 records</option>
+        </select>
+      </div>
+      <span class="hint">Invoice/reconciliation task length — wired to launch API.</span>
+    </div>
+
+    <div class="card ctl">
       <span class="lbl">Task</span>
       <div class="row">
         <select id="taskSelect">
@@ -240,11 +280,14 @@ svg.drift{width:100%;height:130px;display:block}
           <button class="redteam" id="redteamLeft" style="display:none">⚔ Red-team</button>
         </div>
       </div>
-      <div class="verdict" id="verdict-left">
-        <span class="num n" id="score-left">—</span><span class="den">/ 100</span>
-        <div class="meta"><span id="claim-left"></span></div>
+      <div class="narration idle" id="narration-left">Waiting to launch…</div>
+      <div class="hero" id="hero-left">
+        <div class="disk">Records verified on disk</div>
+        <div class="disk-row"><span class="disk-num" id="disk-left">—</span><span class="disk-den" id="disk-den-left">/ —</span></div>
+        <div class="score-row"><span class="score-lbl">Verifier score</span><span class="score-num num n" id="score-left">—</span><span class="score-lbl">/ 100</span></div>
+        <div class="score-cap" id="score-cap-left">Score decided by the deterministic verifier after the run — not the agent's self-report.</div>
       </div>
-      <div class="tiles" id="tiles-left"></div>
+      <div class="counters" id="counters-left"></div>
       <div class="chart-wrap" id="chartwrap-left"></div>
       <div class="strip" id="strip-left" style="display:none"></div>
       <div class="timeline" id="trace-left"><div class="empty">Launch a solo run, or replay R2 / R4.</div></div>
@@ -263,11 +306,19 @@ svg.drift{width:100%;height:130px;display:block}
           <button class="redteam" id="redteamRight" style="display:none">⚔ Red-team</button>
         </div>
       </div>
-      <div class="verdict" id="verdict-right">
-        <span class="num n" id="score-right">—</span><span class="den">/ 100</span>
-        <div class="meta"><span id="claim-right"></span></div>
+      <div class="narration idle" id="narration-right">Waiting to launch…</div>
+      <div class="hero" id="hero-right">
+        <div class="disk">Records verified on disk</div>
+        <div class="disk-row"><span class="disk-num" id="disk-right">—</span><span class="disk-den" id="disk-den-right">/ —</span></div>
+        <div class="score-row"><span class="score-lbl">Verifier score</span><span class="score-num num n" id="score-right">—</span><span class="score-lbl">/ 100</span></div>
+        <div class="score-cap" id="score-cap-right">Score decided by the deterministic verifier after the run — not the agent's self-report.</div>
       </div>
-      <div class="tiles" id="tiles-right"></div>
+      <div class="warden-panel empty" id="warden-panel-right">
+        <div class="wp-title">Warden verdict</div>
+        <div class="wp-body" id="warden-verdict-right">Awaiting first claims-vs-disk audit…</div>
+      </div>
+      <div class="iv-banners" id="iv-banners-right"></div>
+      <div class="counters" id="counters-right"></div>
       <div class="chart-wrap" id="chartwrap-right"></div>
       <div class="strip" id="strip-right"></div>
       <div class="timeline" id="trace-right"><div class="empty">Launch a Warden run, or replay R3 / R5.</div></div>
@@ -300,7 +351,73 @@ $("taskSelect").onchange=()=>{$("customGoal").style.display=$("taskSelect").valu
 $("faultPreset").onchange=()=>{$("faultText").style.display=$("faultPreset").value==="custom"?"block":"none";};
 
 async function api(path,opts={}){return fetch(path,{cache:"no-store",...opts,headers:{...LOCAL_HDR,...(opts.headers||{})}});}
-function taskPayload(){const task=$("taskSelect").value;const p={task};if(task==="custom")p.custom_goal=$("customGoal").value;return p;}
+
+function horizonN(){return parseInt($("horizonSelect").value,10)||10;}
+function taskFromHorizon(n){return n===10?"T1":"R"+n;}
+
+function taskPayload(){
+  const task=$("taskSelect").value;
+  const n=horizonN();
+  const p={n};
+  if(task==="custom"){p.task="custom";p.custom_goal=$("customGoal").value;}
+  else if(task==="T3"||task==="T4"){p.task=task;}
+  else{p.task=taskFromHorizon(n);}
+  return p;
+}
+
+function resolveTotalN(meta,events,fallback){
+  if(meta&&meta.task){
+    const m=String(meta.task).match(/^R(\d+)$/);
+    if(m)return parseInt(m[1],10);
+    if(meta.task==="T1")return 10;
+    if(meta.task==="T2")return 40;
+  }
+  for(const e of events){
+    if(e.tool==="list_dir"&&e.args&&String(e.args.path||"").includes("inbox")){
+      try{
+        const files=JSON.parse(e.result_snippet||"[]");
+        if(Array.isArray(files)&&files.length)return files.length;
+      }catch(_){}
+    }
+  }
+  return fallback||horizonN();
+}
+
+function parseDiskProgress(events){
+  const done=new Set();
+  let current=null;
+  let finished=false;
+  for(const e of events){
+    if(e.tool==="read_file"){
+      const p=(e.args&&e.args.path)||"";
+      const rm=p.match(/^inbox\/(inv_\d+)\.json$/);
+      if(rm)current=rm[1];
+    }
+    if(e.tool==="write_file"){
+      const p=(e.args&&e.args.path)||"";
+      const wm=p.match(/^(?:processed|rejected)\/(inv_\d+)\.json$/);
+      if(wm){done.add(wm[1]);current=wm[1];}
+    }
+    if(e.tool==="finish")finished=true;
+  }
+  return{done:done.size,current,finished};
+}
+
+function narrationText(events,totalN){
+  const{done,current,finished}=parseDiskProgress(events);
+  if(finished)return"declared done — "+done+" of "+totalN+" on disk";
+  if(current)return"processing "+current+" — "+done+" of "+totalN+" done";
+  if(done>0)return"working — "+done+" of "+totalN+" done";
+  if(events.length)return"starting task…";
+  return"Waiting to launch…";
+}
+
+function syncHorizonFromMeta(meta){
+  if(!meta||!meta.task)return;
+  const m=String(meta.task).match(/^R(\d+)$/);
+  if(m&&["10","25","50"].includes(m[1])){$("horizonSelect").value=m[1];return;}
+  if(meta.task==="T1")$("horizonSelect").value="10";
+}
 
 function parseTrace(text){
   const events=[],monitors=[],interventions=[],gates=[];
@@ -362,38 +479,76 @@ function renderChart(col,monitors,warden){
   host.appendChild(s);
 }
 
-/* ---------- stat tiles ---------- */
-function tile(k,v,cls){const t=el("div","tile");t.appendChild(el("div","k",k));t.appendChild(el("div","v"+(cls?" "+cls:""),v));return t;}
-function renderTiles(col,monitors,interventions,gates,attacks,meta,warden){
-  const host=$("tiles-"+col);host.replaceChildren();
-  if(!warden){
-    host.appendChild(tile("Audits","0"));
-    host.appendChild(tile("Attacks",attacks.length||"0",attacks.length?"crit":""));
-    host.appendChild(tile("Caught","0",attacks.length?"crit":""));
-    let lat="—";host.appendChild(tile("Detect lat.",lat));
+/* ---------- stat counters ---------- */
+function counter(k,v,cls){const t=el("div","counter");t.appendChild(el("div","ck",k));t.appendChild(el("div","cv"+(cls?" "+cls:""),String(v)));return t;}
+
+function renderCounters(col,monitors,interventions,gates,attacks,meta,warden){
+  const host=$("counters-"+col);host.replaceChildren();
+  if(warden){
+    host.appendChild(counter("Audits",monitors.length,monitors.length?"accent":""));
+    host.appendChild(counter("Interventions",interventions.length,interventions.length?"hot":""));
+    host.appendChild(counter("Gate blocks",gates.length,gates.length?"hot":""));
+    host.appendChild(counter("Attacks",attacks.length||0,attacks.length?"hot":""));
     return;
   }
-  const lat=meta&&meta.monitor_stats&&meta.monitor_stats.detect_latency!=null?meta.monitor_stats.detect_latency:"—";
-  host.appendChild(tile("Audits",monitors.length,"accent"));
-  host.appendChild(tile("Interventions",interventions.length,interventions.length?"accent":""));
-  host.appendChild(tile("Gate blocks",gates.length,gates.length?"warn":""));
-  host.appendChild(tile("Detect lat.",lat===null?"—":lat));
+  host.appendChild(counter("Audits",0));
+  host.appendChild(counter("Attacks",attacks.length||0,attacks.length?"hot":""));
+  host.appendChild(counter("Caught",0));
+  host.appendChild(counter("On disk","—"));
 }
 
-/* ---------- verdict ---------- */
-function finishedInTrace(events){return events.some(e=>e.tool==="finish");}
-function renderVerdict(col,meta,events){
-  const scoreEl=$("score-"+col),claimEl=$("claim-"+col);
-  if(!meta||meta.verifier_score==null){scoreEl.textContent="—";scoreEl.className="num n";claimEl.textContent="";return;}
+/* ---------- agent narration ---------- */
+function renderNarration(col,events,meta){
+  const host=$("narration-"+col);
+  const totalN=resolveTotalN(meta,events,horizonN());
+  const text=narrationText(events,totalN);
+  host.textContent=text;
+  host.className="narration"+(text.startsWith("Waiting")||text.startsWith("starting")?" idle":"");
+}
+
+/* ---------- hero: disk count + verifier score ---------- */
+function renderHero(col,meta,events){
+  const totalN=resolveTotalN(meta,events,horizonN());
+  const{done}=parseDiskProgress(events);
+  $("disk-"+col).textContent=events.length?String(done):"—";
+  $("disk-den-"+col).textContent="/ "+totalN;
+  const scoreEl=$("score-"+col);
+  if(!meta||meta.verifier_score==null){
+    scoreEl.textContent="—";scoreEl.className="score-num num n";return;
+  }
   const v=meta.verifier_score;
-  scoreEl.textContent=v;
-  scoreEl.className="num "+(v>=90?"g":v>=50?"w":"c");
-  const claimedDone=finishedInTrace(events);
-  claimEl.className="";
-  if(claimedDone&&v<50){claimEl.className="claim lie";claimEl.textContent="claimed success · actually failed";}
-  else if(v>=90){claimEl.className="claim true";claimEl.textContent="verified complete";}
-  else if(claimedDone){claimEl.className="claim lie";claimEl.textContent="finished with defects";}
-  else claimEl.textContent="";
+  scoreEl.textContent=String(v);
+  scoreEl.className="score-num num "+(v>=90?"g":v>=50?"w":"c");
+}
+
+/* ---------- warden verdict panel + intervention banners ---------- */
+function renderWardenVerdict(col,monitors,interventions){
+  if(col!=="right")return;
+  const panel=$("warden-panel-right");
+  const body=$("warden-verdict-right");
+  if(!monitors.length){
+    panel.className="warden-panel empty";
+    body.textContent=interventions.length?"Intervention fired — awaiting next audit…":"Awaiting first claims-vs-disk audit…";
+    body.className="wp-body";return;
+  }
+  const last=monitors[monitors.length-1];
+  const alert=last.score>=60;
+  panel.className="warden-panel";
+  body.textContent="checked claims vs disk: "+(last.reason||"(no reason recorded)");
+  body.className="wp-body"+(alert?" alert":"");
+}
+
+function renderIvBanners(col,interventions){
+  if(col!=="right")return;
+  const host=$("iv-banners-right");
+  host.replaceChildren();
+  for(const iv of interventions){
+    const b=el("div","iv-banner");
+    const step=el("span","iv-step","step "+(iv.step!=null?iv.step:"?"));
+    b.appendChild(step);
+    b.appendChild(document.createTextNode("INTERVENTION — "+(iv.message||"").slice(0,180)));
+    host.appendChild(b);
+  }
 }
 
 /* ---------- attack / memory strip ---------- */
@@ -467,7 +622,8 @@ function refreshLive(){
   $("liveword").textContent=any?"Live run in progress":"Idle";
 }
 function showRedteam(col,show){$(col==="left"?"redteamLeft":"redteamRight").style.display=show?"inline-block":"none";}
-function emptyTrace(col,msg){const t=$("trace-"+col);t.replaceChildren();t.appendChild(el("div","empty",msg));}
+function emptyTrace(col,msg){const t=$("trace-"+col);t.replaceChildren();t.appendChild(el("div","empty",msg));
+  $("narration-"+col).textContent=msg;$("narration-"+col).className="narration idle";}
 
 /* ---------- poll ---------- */
 async function pollRun(col){
@@ -483,8 +639,11 @@ async function pollRun(col){
   let incidents=0;
   if(warden){try{const ir=await api("/api/incidents?run_id="+encodeURIComponent(run));if(ir.ok){const d=await ir.json();incidents=d.count||0;}}catch(_){}}
 
-  renderVerdict(col,meta,p.events);
-  renderTiles(col,p.monitors,p.interventions,p.gates,attacks,meta,warden);
+  renderNarration(col,p.events,meta);
+  renderHero(col,meta,p.events);
+  renderWardenVerdict(col,p.monitors,p.interventions);
+  renderIvBanners(col,p.interventions);
+  renderCounters(col,p.monitors,p.interventions,p.gates,attacks,meta,warden);
   renderChart(col,p.monitors,warden);
   renderStrip(col,attacks,incidents,warden);
   renderTimeline(col,p);
@@ -509,8 +668,12 @@ async function loadRecorded(runId,col,warden){
   const tr=await api("/api/trace?run_id="+encodeURIComponent(runId));
   const p=parseTrace(await tr.text());
   let meta=null;try{meta=await(await api("/api/meta?run_id="+encodeURIComponent(runId))).json();}catch(_){}
-  renderVerdict(col,meta,p.events);
-  renderTiles(col,p.monitors,p.interventions,p.gates,[],meta,warden);
+  syncHorizonFromMeta(meta);
+  renderNarration(col,p.events,meta);
+  renderHero(col,meta,p.events);
+  renderWardenVerdict(col,p.monitors,p.interventions);
+  renderIvBanners(col,p.interventions);
+  renderCounters(col,p.monitors,p.interventions,p.gates,[],meta,warden);
   renderChart(col,p.monitors,warden);
   renderStrip(col,[],0,warden);
   renderTimeline(col,p);
