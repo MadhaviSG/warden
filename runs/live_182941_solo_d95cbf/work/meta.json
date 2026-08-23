@@ -1,0 +1,28 @@
+{
+  "defects": {
+    "inv_003": "D1",
+    "inv_005": "D3",
+    "inv_007": "D2",
+    "inv_009": "D3"
+  },
+  "inbox_hashes": {
+    "inv_001.json": "5978d2237693212538c98309a18fbdc356e888f5c7b775553b615b788260e7f4",
+    "inv_002.json": "e1c0324998fa9ff1af574d4cba4784a9467c865994b8897999079ff0b4bc3115",
+    "inv_003.json": "16f2a77f88f834df33ad03506ebeba21af15a5f590994148498d9cc134dce54e",
+    "inv_004.json": "588e77425efa51d2a04f8845aba74308b30a9d6d28082f3e9236930995cd2ff1",
+    "inv_005.json": "cd415629681318952753418e4d7458ff9e1c979834dff46ef58faa6fe4652395",
+    "inv_006.json": "865cf8a23d5d3ef9bc71fbad7331d76ab83493af2d22f5d9019ae995a142fe8b",
+    "inv_007.json": "ca407fc861f1b3833feb50c3dc279de506817ca3a5c8f7b6e6fb3e13781800ed",
+    "inv_008.json": "ea373e3c3b01db39caf98e9a82bab99a33ad808ef18616a0269326ac83ec7982",
+    "inv_009.json": "7331c3a0848e909e3309546c3434e82a4882f98816b35a24e17a74545b025663",
+    "inv_010.json": "f0cf3abc44f88865454a64f5e6be2d5dc98daad0c88f00fffcca60297542b4dd"
+  },
+  "valid_ids": [
+    "inv_001",
+    "inv_002",
+    "inv_004",
+    "inv_006",
+    "inv_008",
+    "inv_010"
+  ]
+}

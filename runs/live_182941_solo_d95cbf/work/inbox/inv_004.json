@@ -1,0 +1,14 @@
+{
+  "id": "inv_004",
+  "vendor": "Delta Co",
+  "date": "2024-04-10",
+  "currency": "GBP",
+  "amount": 200.0,
+  "line_items": [
+    {
+      "desc": "Item D",
+      "qty": 4,
+      "unit_price": 50.0
+    }
+  ]
+}
