@@ -1,54 +1,54 @@
 {
-  "generated": "2026-08-22 17:48",
+  "generated": "2026-08-22 19:48",
   "fault": null,
   "results": {
     "solo_n25": {
       "arm": "solo",
       "n": 25,
       "reps": 1,
-      "score_mean": 5,
-      "score_min": 5,
-      "score_max": 5,
+      "score_mean": 60,
+      "score_min": 60,
+      "score_max": 60,
       "scores": [
-        5
+        60
       ],
-      "steps_mean": 5
+      "steps_mean": 37
     },
     "warden_n25": {
       "arm": "warden",
       "n": 25,
       "reps": 1,
-      "score_mean": 5,
-      "score_min": 5,
-      "score_max": 5,
+      "score_mean": 85,
+      "score_min": 85,
+      "score_max": 85,
       "scores": [
-        5
+        85
       ],
-      "steps_mean": 9
+      "steps_mean": 54
     },
     "solo_n50": {
       "arm": "solo",
       "n": 50,
       "reps": 1,
-      "score_mean": 5,
-      "score_min": 5,
-      "score_max": 5,
+      "score_mean": 60,
+      "score_min": 60,
+      "score_max": 60,
       "scores": [
-        5
+        60
       ],
-      "steps_mean": 5
+      "steps_mean": 102
     },
     "warden_n50": {
       "arm": "warden",
       "n": 50,
       "reps": 1,
-      "score_mean": 5,
-      "score_min": 5,
-      "score_max": 5,
+      "score_mean": 60,
+      "score_min": 60,
+      "score_max": 60,
       "scores": [
-        5
+        60
       ],
-      "steps_mean": 8
+      "steps_mean": 104
     }
   }
 }

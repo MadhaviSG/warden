@@ -34,5 +34,7 @@
 | P7: test infrastructure | PASS | pytest 15/15; CI workflow; requirements-dev.txt | 2026-08-22 17:24 |
 | P6: rigor (partial) | PARTIAL | R6/R7 arms + fp fix; n=3 repeats; full n≥5 sweep skipped (time) | 2026-08-22 17:24 |
 | Task 1: Tier-0 recon gate | PASS | solo n=25 steps=53 score=85; warden score=85; R{n} setup fix | 2026-08-23 02:06 |
-| Task 3: dashboard UI upgrade | PASS | narration, warden verdict, hero X/N, horizon n=10/25/50 | 2026-08-22 18:50 |
+| Task 2: horizon sweep | PASS | solo 60/60 @ N25/50; warden 85/60; flat curve (no solo decay) | 2026-08-23 02:15 |
+| Task 3: dashboard UI upgrade | PASS | narration, warden verdict, hero X/N, horizon n=10/25/50 | 2026-08-23 02:15 |
+| Task 4: freeze + push | PASS | pytest 25/25; sweep table + horizon chart committed | 2026-08-23 02:16 |
 | P3 smoke run | PASS | _smoke_p3 summaries schema ok (records_done populated) | 2026-08-22 17:22 |
