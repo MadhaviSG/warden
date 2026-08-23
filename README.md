@@ -2,6 +2,8 @@
 
 Autonomous agents working multi-step file tasks can drift mid-run when they receive plausible-but-wrong instructions. By the time a postmortem verifier runs, the damage is done. Warden is an inline monitor that catches drift while the agent is still running.
 
+**[Live demo](https://work-1-ciaqvsgdkbhpvnuu.prod-runtime.all-hands.dev/)** — split-screen mission control: unmonitored actor vs Warden.
+
 ## Actor-critic architecture
 
 WARDEN is a two-agent actor-critic system:
@@ -27,7 +29,7 @@ The naive baseline only implements point 1 with transcript-only evidence (no dis
 
 ## Mission control
 
-Launch live actor-critic runs from the interactive dashboard:
+Launch live actor-critic runs from the interactive dashboard: **[live demo](https://work-1-ciaqvsgdkbhpvnuu.prod-runtime.all-hands.dev/)**, or locally:
 
 ```bash
 python dashboard.py          # http://127.0.0.1:8765
@@ -100,6 +102,18 @@ Preset buttons load captured R2/R3/R4/R5 traces without re-running LLMs.
 | R4 | adversary+naive | 5 | 15 |
 | R5 | adversary+Warden | 5 | 20 |
 <!-- RESULTS:END -->
+
+## Horizon sweep (clean, no fault)
+
+Reconciliation task with compounding invariants; emergent drift only. Regenerate with `python sweep.py --n 25,50 --reps 1 --fault none --yes`.
+
+<!-- SWEEP:START -->
+| Arm | N | Mean Score | Min | Max | Mean Steps |
+|-----|---|------------|-----|-----|------------|
+| (pending) | — | — | — | — | — |
+<!-- SWEEP:END -->
+
+![Drift-free horizon](static/horizon_chart.png)
 
 ![Verifier scores](charts/results.png)
 
